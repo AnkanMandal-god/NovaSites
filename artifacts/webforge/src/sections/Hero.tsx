@@ -94,7 +94,7 @@ function StatItem({ val, label }: { val: string; label: string }) {
         transition: "transform 0.2s ease, filter 0.2s ease",
         transform: hov ? "translateY(-3px)" : "translateY(0px)",
         filter: hov
-          ? "drop-shadow(0 0 8px rgba(0,229,255,0.55)) drop-shadow(0 0 2px rgba(0,229,255,0.8))"
+          ? "drop-shadow(0 0 5px rgba(0,229,255,0.28))"
           : "none",
         cursor: "default",
       }}
@@ -126,7 +126,7 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="hero-section min-h-screen flex items-center justify-center overflow-hidden"
       style={{ paddingTop: 80 }}
     >
       {/* Data rain — constrained to hero section only */}

@@ -209,15 +209,18 @@ function CtaButton() {
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [arrowHovered, setArrowHovered] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 80);
+      if (window.scrollY <= 80) setNavOpen(false);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const navVisible = !scrolled || arrowHovered;
+  const navVisible = !scrolled || navOpen;
 
   return (
     <>
@@ -229,6 +232,7 @@ export function Navbar() {
           opacity: navVisible ? 1 : 0,
         }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+        onMouseLeave={() => { if (scrolled) setNavOpen(false); }}
       >
         {/* Top accent line */}
         <div
@@ -322,9 +326,9 @@ export function Navbar() {
         <ScanLine />
       </motion.div>
 
-      {/* ── Trapezoid arrow tab — hangs from top when scrolled, hides when hovered ── */}
+      {/* ── Trapezoid arrow tab — hangs from top when scrolled, hides when nav open ── */}
       <AnimatePresence>
-        {scrolled && !arrowHovered && (
+        {scrolled && !navOpen && (
           <motion.div
             className="fixed z-50"
             style={{
@@ -337,8 +341,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            onMouseEnter={() => setArrowHovered(true)}
-            onMouseLeave={() => setArrowHovered(false)}
+            onMouseEnter={() => setNavOpen(true)}
             data-testid="button-nav-arrow"
             aria-label="Show navigation"
           >
