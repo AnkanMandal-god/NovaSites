@@ -1,0 +1,35 @@
+"I need to implement a precision-engineered navigation bar using a 'Chassis & Engine' layout approach. Please follow these structural requirements strictly:
+
+1. The Static Chassis (Outer Shell):
+
+    Fixation: The navbar must be fixed to the top of the viewport, horizontally centered with z-index: 50.
+
+    Anchoring: Use a Flexbox container (justify-between) to lock the '// WEBFORGE' logo to the far-left and the 'Get Started' button to the far-right.
+
+    Constraint: These two elements must be treated as 'Static Chassis' components—they must NOT change size, position, or opacity during any interaction. They define the fixed boundaries of the navbar.
+
+    Visuals: Apply a backdrop-filter: blur() to the container for a glassmorphism effect. Include a 2px neon-cyan line along the bottom edge, anchored to the full width of the container, serving as a permanent glowing base.
+
+2. The Dynamic Core (Center Engine):
+
+    Function: Position a separate container in the absolute center of the bar between the logo and the button. This is the 'Dynamic Engine.'
+
+    State A (Expanded/Hero View): When at the page top, this container displays the navigation links ('What We Do', 'The Process', 'Pricing', 'Contact') in a clean, evenly spaced horizontal flex row.
+
+    State B (Collapsed/Scroll View): Upon scrolling past the hero, this container must collapse into a geometric rhombus icon (a square div rotated 45 degrees). Inside this rhombus, display a downward-pointing chevron.
+
+    Transformation Logic: Apply a CSS counter-rotation of -45 degrees to the chevron icon so it remains perfectly vertical despite the rhombus rotation.
+
+3. Kinetic Physics & Interaction:
+
+    Physics: Use a spring-based animation transition for the collapse/expand trigger. It must feel 'weighted'—the center core should compress into the rhombus and expand into the text links with a mechanical 'snap' (stiffness: 300, damping: 30).
+
+    Trigger: The transformation is triggered by scroll position (collapsed when scrollY > 100).
+
+    Hover: If the user hovers over the collapsed rhombus, it must spring back to the expanded text-link state immediately.
+
+Implementation Rules:
+
+    Use Tailwind CSS for styling and Framer Motion for the kinetic state transitions.
+
+    Ensure that the transition of the 'Dynamic Engine' does not cause any layout shift or movement to the static logo or the CTA button."

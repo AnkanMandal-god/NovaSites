@@ -1,0 +1,43 @@
+The "Modular Layout" Prompt
+
+Copy and paste this into Replit:
+
+"I want to implement a 'collapsible center navigation' component in my header. Please help me structure it this way:
+
+1. Static Header Container:
+
+    Create a fixed parent container at the top of the viewport.
+
+    Place the WEBFORGE logo on the far left and the Get Started button on the far right using flex justify-between. These must remain anchored in their positions regardless of what happens in the center.
+
+2. Dynamic Center 'Engine':
+
+    Create a dedicated div in the center of the header container.
+
+    State: Use a boolean isExpanded.
+
+    When isExpanded is true: Render the navigation links ('What We Do', 'The Process', 'Pricing', 'Contact') in a horizontal flex row.
+
+    When isExpanded is false: Replace the links with a small, centered rhombus/diamond icon (containing a downward arrow).
+
+    Transition: Use a smooth animation to transition the width and opacity of this center section.
+
+3. Layout Mechanics:
+
+    Ensure that when the center section collapses, the logo and the 'Get Started' button do not move. They should stay exactly where they are in the static layout.
+
+    Add a backdrop blur to the parent container and the neon cyan bottom line that spans the width of the container."
+
+Why this approach will succeed:
+
+    The "Anchor" strategy: By explicitly telling the AI that the logo and button are "anchored" and "static," you prevent it from trying to "collapse the whole bar," which is why your previous attempts failed.
+
+    The "Container/Engine" split: By asking for a dedicated div for the center links, you create a controlled "zone" for your animation. Even if the animation is a bit buggy at first, it won't break the layout of your brand name or your CTA button.
+
+Pro-Tip for your Vibe Coding:
+
+If you want to get the "rhombus/arrow" look right without complicated CSS math:
+
+    For the rhombus: Just create a simple square div with rotate-45 class in Tailwind.
+
+    For the arrow: Put an icon (like lucide-react's ChevronDown) inside it and add rotate--45 so it stays upright while the box is tilted.
