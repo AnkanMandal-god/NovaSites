@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { DataRain } from "../components/DataRain";
 
 function HeroButton({
   href,
@@ -35,16 +36,13 @@ function HeroButton({
         onMouseUp={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(1)")}
         data-testid="button-hero-primary"
       >
-        {/* Sweep fill */}
         <motion.span
           style={{ position: "absolute", inset: 0, background: "#00E5FF", originX: 0 }}
           initial={{ scaleX: 0 }}
           animate={{ scaleX: hov ? 1 : 0 }}
           transition={{ duration: 0.22, ease: "easeInOut" }}
         />
-        {/* TL bracket */}
         <span style={{ position: "absolute", top: 4, left: 4, width: 8, height: 8, borderTop: "1.5px solid #00E5FF", borderLeft: "1.5px solid #00E5FF", zIndex: 2, opacity: hov ? 0 : 1, transition: "opacity 0.15s" }} />
-        {/* BR bracket */}
         <span style={{ position: "absolute", bottom: 4, right: 4, width: 8, height: 8, borderBottom: "1.5px solid #00E5FF", borderRight: "1.5px solid #00E5FF", zIndex: 2, opacity: hov ? 0 : 1, transition: "opacity 0.15s" }} />
         <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{ fontFamily: "monospace", opacity: hov ? 1 : 0.5, transition: "opacity 0.2s" }}>{">"}</span>
@@ -81,6 +79,49 @@ function HeroButton({
   );
 }
 
+const STATS = [
+  { val: "< 1s",  label: "Load Time" },
+  { val: "5–10",  label: "Day Delivery" },
+  { val: "100%",  label: "Code Ownership" },
+];
+
+function StatItem({ val, label }: { val: string; label: string }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      className="text-center px-10 select-none"
+      style={{
+        transition: "transform 0.2s ease, filter 0.2s ease",
+        transform: hov ? "translateY(-3px)" : "translateY(0px)",
+        filter: hov
+          ? "drop-shadow(0 0 8px rgba(0,229,255,0.55)) drop-shadow(0 0 2px rgba(0,229,255,0.8))"
+          : "none",
+        cursor: "default",
+      }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
+      <div
+        className="font-black"
+        style={{
+          fontSize: 22,
+          letterSpacing: "0.05em",
+          color: hov ? "#00E5FF" : "#ffffff",
+          transition: "color 0.2s",
+        }}
+      >
+        {val}
+      </div>
+      <div
+        className="font-mono text-[9px] tracking-widest uppercase mt-0.5"
+        style={{ color: "rgba(0,229,255,0.5)" }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export function Hero() {
   return (
     <section
@@ -88,6 +129,9 @@ export function Hero() {
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{ paddingTop: 80 }}
     >
+      {/* Data rain — constrained to hero section only */}
+      <DataRain />
+
       {/* Subtle radial glow behind text */}
       <div
         className="absolute pointer-events-none"
@@ -98,10 +142,11 @@ export function Hero() {
           width: 600,
           height: 400,
           background: "radial-gradient(ellipse, rgba(0,229,255,0.06) 0%, transparent 70%)",
+          zIndex: 3,
         }}
       />
 
-      <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
+      <div className="relative text-center px-6 max-w-3xl mx-auto" style={{ zIndex: 10 }}>
         {/* Pre-label */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -165,26 +210,21 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="flex items-center justify-center gap-8 mt-14"
+          className="flex items-center justify-center mt-16"
         >
-          {[
-            { val: "< 1s", label: "Load Time" },
-            { val: "5–10", label: "Day Delivery" },
-            { val: "100%", label: "Code Ownership" },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
-              <div
-                className="font-black text-white"
-                style={{ fontSize: 20, letterSpacing: "0.05em" }}
-              >
-                {s.val}
-              </div>
-              <div
-                className="font-mono text-[9px] tracking-widest uppercase mt-0.5"
-                style={{ color: "rgba(0,229,255,0.5)" }}
-              >
-                {s.label}
-              </div>
+          {STATS.map((s, i) => (
+            <div key={s.label} className="flex items-center">
+              <StatItem val={s.val} label={s.label} />
+              {i < STATS.length - 1 && (
+                <div
+                  style={{
+                    width: 1,
+                    height: 36,
+                    background: "linear-gradient(to bottom, transparent, rgba(0,229,255,0.25), transparent)",
+                    flexShrink: 0,
+                  }}
+                />
+              )}
             </div>
           ))}
         </motion.div>

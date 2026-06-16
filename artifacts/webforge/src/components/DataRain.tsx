@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const CHARS = "ABCDEF0123456789_*/\\#|~^//A4C9E500";
-const TRAIL_LEN = 10;       /* number of fading chars behind lead */
+const TRAIL_LEN = 14;
 
 export function DataRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,13 +13,13 @@ export function DataRain() {
     if (!ctx) return;
 
     const FONT_SIZE = 13;
-    const COL_GAP   = FONT_SIZE * 4;  /* wide spacing = sparse, individual chars */
+    const COL_GAP   = FONT_SIZE * 3.6;
 
     type Column = {
       x: number;
-      y: number;            /* lead y position in px */
+      y: number;
       speed: number;
-      trail: string[];      /* ring-buffer of chars */
+      trail: string[];
       head: number;
       isCyan: boolean;
     };
@@ -36,7 +36,7 @@ export function DataRain() {
       const H = canvas!.height;
       const numCols = Math.floor(W / COL_GAP);
 
-      /* Pick exactly 2 cyan columns */
+      /* Exactly 2 cyan columns */
       const cyanSet = new Set<number>();
       while (cyanSet.size < Math.min(2, numCols)) {
         cyanSet.add(Math.floor(Math.random() * numCols));
@@ -45,23 +45,24 @@ export function DataRain() {
       cols = Array.from({ length: numCols }, (_, i) => ({
         x:      i * COL_GAP + COL_GAP * 0.4,
         y:      Math.random() * -H * 1.5,
-        speed:  0.5 + Math.random() * 1.0,
+        speed:  0.6 + Math.random() * 1.1,
         trail:  Array.from({ length: TRAIL_LEN }, randChar),
         head:   0,
         isCyan: cyanSet.has(i),
       }));
     }
 
-    function resize() {
-      canvas!.width  = window.innerWidth;
-      canvas!.height = window.innerHeight;
+    function syncSize() {
+      const parent = canvas!.parentElement;
+      if (!parent) return;
+      canvas!.width  = parent.clientWidth;
+      canvas!.height = parent.clientHeight;
       build();
     }
 
     function draw() {
       if (!ctx || !canvas) return;
 
-      /* Full clear every frame — canvas stays transparent, no background fill */
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
@@ -73,20 +74,15 @@ export function DataRain() {
       for (const col of cols) {
         col.y += col.speed;
 
-        /* Flicker lead character */
-        if (Math.random() < 0.08) {
-          col.trail[col.head] = randChar();
-        }
+        if (Math.random() < 0.08) col.trail[col.head] = randChar();
 
-        /* Horizontal gradient: transparent at centre, opaque at edges */
+        /* Edge-to-centre gradient: squared for smooth falloff */
         const distFromCenter = Math.abs(col.x - centerX);
-        const edgeFactor     = Math.min(distFromCenter / maxDist, 1); /* 0–1 */
-        /* Smooth: ease-in so centre is very transparent */
-        const horizAlpha = edgeFactor * edgeFactor;  /* 0 at centre → 1 at edge */
+        const edgeFactor     = Math.min(distFromCenter / maxDist, 1);
+        const horizAlpha     = edgeFactor * edgeFactor;
 
         const color = col.isCyan ? "0,229,255" : "255,255,255";
 
-        /* Draw trail: t=0 is lead (brightest), t=TRAIL_LEN-1 is oldest (faintest) */
         for (let t = 0; t < TRAIL_LEN; t++) {
           const charIdx = (col.head - t + TRAIL_LEN) % TRAIL_LEN;
           const ch      = col.trail[charIdx];
@@ -94,10 +90,11 @@ export function DataRain() {
 
           if (py < -FONT_SIZE || py > canvas.height) continue;
 
-          /* Trail fade: lead at 1.0, fades to 0 at tail */
+          /* Lead character bright; trail falls off */
           const trailAlpha = t === 0 ? 1 : Math.max(0, 1 - t / (TRAIL_LEN - 1));
-          /* Combined alpha: horizontal edge-fade × trail-fade × global cap */
-          const alpha = horizAlpha * trailAlpha * 0.45;
+          /* Brighter cap: 0.75 for white, full 1.0 for cyan */
+          const brightCap  = col.isCyan ? 1.0 : 0.75;
+          const alpha      = horizAlpha * trailAlpha * brightCap;
 
           if (alpha < 0.005) continue;
 
@@ -106,16 +103,14 @@ export function DataRain() {
           ctx.fillText(ch, col.x, py);
         }
 
-        /* Advance ring buffer occasionally */
         if (Math.random() < col.speed * 0.18) {
           col.head = (col.head + 1) % TRAIL_LEN;
           col.trail[col.head] = randChar();
         }
 
-        /* Reset when trail fully exits bottom */
         if (col.y - TRAIL_LEN * FONT_SIZE > canvas.height) {
           col.y    = -FONT_SIZE * (2 + Math.random() * 10);
-          col.speed = 0.5 + Math.random() * 1.0;
+          col.speed = 0.6 + Math.random() * 1.1;
         }
       }
 
@@ -123,13 +118,14 @@ export function DataRain() {
       raf = requestAnimationFrame(draw);
     }
 
-    resize();
-    window.addEventListener("resize", resize);
+    const ro = new ResizeObserver(() => syncSize());
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    syncSize();
     raf = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
+      ro.disconnect();
     };
   }, []);
 
@@ -137,14 +133,12 @@ export function DataRain() {
     <canvas
       ref={canvasRef}
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 15,
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 2,           /* behind hero content (z-10) but above section bg */
         pointerEvents: "none",
-        /* No opacity here — alpha is controlled per-character above */
       }}
     />
   );
