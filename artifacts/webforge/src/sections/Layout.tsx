@@ -10,6 +10,47 @@ const NAV_LINKS = [
 ];
 
 const spring = { type: "spring", stiffness: 300, damping: 30 };
+const SKEW = -10;
+
+/* Glassmorphic gradient-bordered parallelogram pill */
+function Pill({
+  children,
+  className = "",
+  style = {},
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        transform: `skewX(${SKEW}deg)`,
+        /* gradient border via background + 1px padding */
+        background:
+          "linear-gradient(135deg, rgba(0,229,255,0.55) 0%, rgba(0,229,255,0.08) 45%, rgba(0,229,255,0.45) 100%)",
+        padding: "1px",
+        borderRadius: "3px",
+        ...style,
+      }}
+    >
+      <div
+        className={`flex items-center ${className}`}
+        style={{
+          transform: `skewX(${-SKEW}deg)`,
+          background: "rgba(8,8,8,0.72)",
+          backdropFilter: "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+          borderRadius: "2px",
+          height: "38px",
+          padding: "0 18px",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -24,114 +65,110 @@ export function Navbar() {
   const collapsed = scrolled && !hovered;
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50"
-      style={{
-        background: "rgba(10,10,10,0.60)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-      }}
+    <div
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8"
+      style={{ height: "60px", pointerEvents: "none" }}
     >
-      {/* Main chassis row */}
-      <div className="relative container mx-auto px-6 h-20 flex items-center justify-between">
-
-        {/* Static Chassis — Left: Logo */}
-        <a
-          href="#"
-          className="flex items-center text-xl font-bold tracking-widest text-white shrink-0 z-10"
-          data-testid="link-logo"
-        >
-          <span className="text-primary mr-2 font-mono">//</span> WEBFORGE
-        </a>
-
-        {/* Dynamic Core — absolutely centered Engine */}
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          aria-label="Center navigation"
-        >
-          <div
-            className="pointer-events-auto"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            data-testid="nav-engine"
+      {/* ── Left Pill: Logo ── */}
+      <div style={{ pointerEvents: "auto" }}>
+        <Pill>
+          <a
+            href="#"
+            className="flex items-center text-sm font-bold tracking-widest text-white whitespace-nowrap"
+            data-testid="link-logo"
           >
-            <AnimatePresence mode="wait" initial={false}>
-              {!collapsed ? (
-                /* State A — Expanded links */
-                <motion.div
-                  key="links"
-                  className="flex items-center gap-8"
-                  initial={{ opacity: 0, scaleX: 0.5, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, scaleX: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scaleX: 0.5, filter: "blur(4px)" }}
-                  transition={spring}
-                  style={{ originX: 0.5 }}
-                >
+            <span className="text-primary mr-1.5 font-mono text-xs">//</span>
+            WEBFORGE
+          </a>
+        </Pill>
+      </div>
+
+      {/* ── Center Pill: Kinetic Engine ── */}
+      <div
+        style={{ pointerEvents: "auto" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        data-testid="nav-engine"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {!collapsed ? (
+            /* Expanded: nav links inside pill */
+            <motion.div
+              key="links"
+              initial={{ opacity: 0, scaleX: 0.4 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              exit={{ opacity: 0, scaleX: 0.4 }}
+              transition={spring}
+              style={{ originX: 0.5 }}
+            >
+              <Pill>
+                <div className="flex items-center gap-7">
                   {NAV_LINKS.map((link, i) => (
                     <motion.a
                       key={link.href}
                       href={link.href}
-                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+                      className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                       data-testid={`link-nav-${i}`}
-                      initial={{ opacity: 0, y: -8 }}
+                      initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ ...spring, delay: i * 0.04 }}
                     >
                       {link.label}
                     </motion.a>
                   ))}
-                </motion.div>
-              ) : (
-                /* State B — Collapsed rhombus */
-                <motion.div
-                  key="rhombus"
-                  className="flex items-center justify-center cursor-pointer"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    border: "1.5px solid #00E5FF",
-                    boxShadow: "0 0 8px rgba(0,229,255,0.35)",
-                    rotate: 45,
-                    background: "rgba(0,229,255,0.06)",
-                  }}
-                  initial={{ opacity: 0, scale: 0.3, rotate: 0 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 45 }}
-                  exit={{ opacity: 0, scale: 0.3, rotate: 0 }}
-                  transition={spring}
-                  data-testid="button-nav-rhombus"
-                  aria-label="Expand navigation"
-                >
-                  {/* Counter-rotate the chevron so it stays upright */}
-                  <motion.span
-                    style={{ rotate: -45, display: "flex", alignItems: "center" }}
-                  >
-                    <ChevronDown size={14} color="#00E5FF" />
-                  </motion.span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Static Chassis — Right: CTA */}
-        <div className="shrink-0 z-10" data-testid="nav-cta">
-          <a href="#contact" className="btn-primary py-2 px-4 text-sm">
-            Get Started
-          </a>
-        </div>
+                </div>
+              </Pill>
+            </motion.div>
+          ) : (
+            /* Collapsed: standalone rhombus diamond */
+            <motion.div
+              key="rhombus"
+              className="flex items-center justify-center cursor-pointer"
+              style={{
+                width: 34,
+                height: 34,
+                border: "1.5px solid #00E5FF",
+                boxShadow: "0 0 10px rgba(0,229,255,0.4), inset 0 0 6px rgba(0,229,255,0.05)",
+                transform: "rotate(45deg)",
+                background: "rgba(0,229,255,0.07)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+              }}
+              initial={{ opacity: 0, scale: 0.2, rotate: 0 }}
+              animate={{ opacity: 1, scale: 1, rotate: 45 }}
+              exit={{ opacity: 0, scale: 0.2, rotate: 0 }}
+              transition={spring}
+              data-testid="button-nav-rhombus"
+              aria-label="Expand navigation"
+            >
+              {/* Counter-rotate chevron so it stays upright */}
+              <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
+                <ChevronDown size={13} color="#00E5FF" strokeWidth={2.5} />
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Permanent neon-cyan base line — full width */}
-      <div
-        style={{
-          height: 2,
-          background:
-            "linear-gradient(to right, transparent 0%, #00E5FF 30%, #00E5FF 70%, transparent 100%)",
-          opacity: 0.5,
-          boxShadow: "0 0 6px rgba(0,229,255,0.4)",
-        }}
-      />
-    </nav>
+      {/* ── Right Pill: CTA ── */}
+      <div style={{ pointerEvents: "auto" }}>
+        <Pill
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,229,255,0.9) 0%, rgba(0,229,255,0.4) 50%, rgba(0,229,255,0.85) 100%)",
+          }}
+        >
+          <a
+            href="#contact"
+            className="text-xs font-bold tracking-wide whitespace-nowrap"
+            style={{ color: "#0A0A0A" }}
+            data-testid="link-cta"
+          >
+            Get Started
+          </a>
+        </Pill>
+      </div>
+    </div>
   );
 }
 
