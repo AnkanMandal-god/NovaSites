@@ -322,9 +322,9 @@ export function Navbar() {
         <ScanLine />
       </motion.div>
 
-      {/* ── Trapezoid arrow tab — hangs from top when scrolled ── */}
+      {/* ── Trapezoid arrow tab — hangs from top when scrolled, hides when hovered ── */}
       <AnimatePresence>
-        {scrolled && (
+        {scrolled && !arrowHovered && (
           <motion.div
             className="fixed z-50"
             style={{
@@ -355,48 +355,58 @@ export function Navbar() {
               const perim = TW + sideLen + BW + sideLen;         /* ≈ 235 */
               const dashLen = 60;
 
+              const clipPct = `polygon(0% 0%, 100% 0%, ${((TW - inset) / TW * 100).toFixed(1)}% 100%, ${(inset / TW * 100).toFixed(1)}% 100%)`;
+
               return (
-                <svg
-                  width={TW}
-                  height={H}
-                  viewBox={`0 0 ${TW} ${H}`}
-                  style={{ display: "block", filter: arrowHovered ? "drop-shadow(0 0 6px rgba(0,229,255,0.5))" : "none", transition: "filter 0.18s" }}
-                  overflow="visible"
-                >
-                  {/* Fill */}
-                  <polygon
-                    points={pts}
-                    fill={arrowHovered ? "rgba(0,229,255,0.10)" : "rgba(8,8,8,0.88)"}
-                    style={{ transition: "fill 0.18s" }}
+                <div style={{ position: "relative", width: TW, height: H }}>
+                  {/* Glass fill layer — clip-path gives it the trapezoid shape */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "rgba(10,10,10,0.92)",
+                      backdropFilter: "blur(18px)",
+                      WebkitBackdropFilter: "blur(18px)",
+                      clipPath: clipPct,
+                    }}
                   />
 
-                  {/* Static dim border */}
-                  <polygon
-                    points={pts}
-                    fill="none"
-                    stroke="rgba(0,229,255,0.18)"
-                    strokeWidth={1}
-                  />
+                  {/* SVG — border + perimeter animation only */}
+                  <svg
+                    width={TW}
+                    height={H}
+                    viewBox={`0 0 ${TW} ${H}`}
+                    style={{ position: "relative", display: "block" }}
+                    overflow="visible"
+                  >
+                    {/* Static dim border */}
+                    <polygon
+                      points={pts}
+                      fill="none"
+                      stroke="rgba(0,229,255,0.22)"
+                      strokeWidth={1}
+                    />
 
-                  {/* Animated perimeter glow segment */}
-                  <motion.polygon
-                    points={pts}
-                    fill="none"
-                    stroke="#00E5FF"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeDasharray={`${dashLen} ${perim - dashLen}`}
-                    animate={{ strokeDashoffset: [0, -perim] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
-                    style={{ filter: "drop-shadow(0 0 2px #00E5FF)" }}
-                  />
+                    {/* Animated perimeter glow segment */}
+                    <motion.polygon
+                      points={pts}
+                      fill="none"
+                      stroke="#00E5FF"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeDasharray={`${dashLen} ${perim - dashLen}`}
+                      animate={{ strokeDashoffset: [0, -perim] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+                      style={{ filter: "drop-shadow(0 0 2px #00E5FF)" }}
+                    />
 
-                  {/* Chevron icon, centered */}
-                  <g transform={`translate(${TW / 2}, ${H * 0.52})`}>
-                    <line x1="-5" y1="-2" x2="0" y2="3" stroke="#00E5FF" strokeWidth={1.8} strokeLinecap="round" />
-                    <line x1="0" y1="3" x2="5" y2="-2" stroke="#00E5FF" strokeWidth={1.8} strokeLinecap="round" />
-                  </g>
-                </svg>
+                    {/* Chevron, centered */}
+                    <g transform={`translate(${TW / 2}, ${H * 0.54})`}>
+                      <line x1="-5" y1="-2.5" x2="0" y2="3" stroke="#00E5FF" strokeWidth={2} strokeLinecap="round" />
+                      <line x1="0" y1="3" x2="5" y2="-2.5" stroke="#00E5FF" strokeWidth={2} strokeLinecap="round" />
+                    </g>
+                  </svg>
+                </div>
               );
             })()}
           </motion.div>
