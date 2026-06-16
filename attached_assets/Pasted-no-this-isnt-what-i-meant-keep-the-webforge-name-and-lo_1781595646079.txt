@@ -1,0 +1,31 @@
+no this isnt what i meant 
+keep the webforge name and logo as it was and keep the get started button as it was i juss want the centre nav buttons to get modified in this style 
+I am building a landing page with a fixed navigation bar that uses glassmorphism. Please update the navbar implementation based on these specific requirements:
+
+1. Branding & CTA Preservation:
+
+    Keep the WebForge logo (left) and the 'Initialize' button (right) exactly as they are currently styled in the expanded state of image_3dd23f.png. These elements should remain visible and unchanged in their styling at all times.
+
+2. Kinetic Center Navigation (The 'Engine' Component):
+
+    Modify only the center navigation links ('Capabilities', 'Protocol', 'Valuation').
+
+    State-Driven Behavior: When the user is at the top of the page, the center links should be visible in a clear, spaced horizontal row.
+
+    Collapsing Logic: As the user scrolls down, the center links should smoothly collapse and vanish, replaced by a single, centered downward-pointing arrow (as seen in the sketch in image_3e42bb.png).
+
+    Kinetic Interaction: When the user hovers over this collapsed area or the arrow, the center links should spring back into their original horizontal position, expanding the nav area back to its original layout.
+
+3. Visual Style:
+
+    The entire navbar must maintain a glassmorphism effect (backdrop-blur).
+
+    Include the thin neon blue line at the bottom center of the navbar container that fades out at the edges, as shown in image_3dd23f.png.
+
+    The collapse transition should feel 'weighted'—use a spring-based animation to transition between the expanded state (links visible) and the collapsed state (arrow icon visible).
+
+Technical Constraints:
+
+    Use Tailwind CSS for styling and Framer Motion for the spring-based transitions between states.
+
+    Ensure the transition only affects the center links and the expansion/collapse of the nav container, while the logo and 'Initialize' button remain static and unaffected by the movement."
