@@ -7,12 +7,14 @@ import { Portfolio } from "./sections/Portfolio";
 import { Pricing } from "./sections/Pricing";
 import { ConsultationForm } from "./sections/ConsultationForm";
 import { Feedback } from "./sections/Feedback";
+import { DataRain } from "./components/DataRain";
 
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <DataRain />
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <Hero />
         <WhatWeDo />
         <Metrics />

@@ -86,10 +86,8 @@ export function Hero() {
     <section
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      style={{ paddingTop: 80 }}
     >
-      {/* Grid background */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
       {/* Subtle radial glow behind text */}
       <div
         className="absolute pointer-events-none"
