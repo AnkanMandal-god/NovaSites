@@ -1,5 +1,10 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const NAV_LINKS = [
@@ -9,9 +14,7 @@ const NAV_LINKS = [
   { label: "Contact", href: "#contact" },
 ];
 
-const spring = { type: "spring", stiffness: 300, damping: 30 };
-
-/* Blinking terminal cursor */
+/* Blinking cursor */
 function Cursor() {
   const [on, setOn] = useState(true);
   useEffect(() => {
@@ -23,50 +26,190 @@ function Cursor() {
       style={{
         display: "inline-block",
         width: 2,
-        height: "1em",
+        height: "0.85em",
         background: on ? "#00E5FF" : "transparent",
         marginLeft: 3,
         verticalAlign: "middle",
-        transition: "background 0.1s",
       }}
     />
   );
 }
 
-/* Animated scan line that travels across the bottom border */
+/* Animated bottom scan line */
 function ScanLine() {
   return (
     <div style={{ position: "relative", height: 1, overflow: "hidden" }}>
-      {/* Static dim base */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,229,255,0.12)",
-        }}
-      />
-      {/* Moving glow */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,229,255,0.1)" }} />
       <motion.div
         style={{
           position: "absolute",
           top: 0,
-          width: 180,
+          width: 160,
           height: 1,
-          background:
-            "linear-gradient(to right, transparent, #00E5FF 40%, #00E5FF 60%, transparent)",
-          filter: "blur(1px)",
+          background: "linear-gradient(to right, transparent, #00E5FF 45%, #00E5FF 55%, transparent)",
         }}
-        animate={{ x: ["-180px", "100vw"] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+        animate={{ x: ["-160px", "100vw"] }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "linear", repeatDelay: 0.8 }}
       />
     </div>
   );
 }
 
+/* Magnetic nav link — pulls toward cursor, springs back */
+function MagneticLink({
+  href,
+  label,
+  index,
+}: {
+  href: string;
+  label: string;
+  index: number;
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const x = useSpring(rawX, { stiffness: 380, damping: 22 });
+  const y = useSpring(rawY, { stiffness: 380, damping: 22 });
+  const [lit, setLit] = useState(false);
+
+  const onMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    rawX.set((e.clientX - (r.left + r.width / 2)) * 0.28);
+    rawY.set((e.clientY - (r.top + r.height / 2)) * 0.28);
+  };
+  const onLeave = () => {
+    rawX.set(0);
+    rawY.set(0);
+    setLit(false);
+  };
+
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      className="relative px-4 py-1 text-[11px] font-semibold tracking-widest uppercase select-none cursor-pointer"
+      style={{
+        color: lit ? "#ffffff" : "rgba(255,255,255,0.48)",
+        x,
+        y,
+      }}
+      data-testid={`link-nav-${index}`}
+      onMouseMove={onMove}
+      onMouseEnter={() => setLit(true)}
+      onMouseLeave={onLeave}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      {label}
+      {/* Cyan underline slides in */}
+      <motion.span
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: "50%",
+          translateX: "-50%",
+          height: 1,
+          background: "#00E5FF",
+          boxShadow: "0 0 4px #00E5FF",
+        }}
+        initial={{ width: 0 }}
+        animate={{ width: lit ? "70%" : 0 }}
+        transition={{ duration: 0.18 }}
+      />
+    </motion.a>
+  );
+}
+
+/* Creative CTA: bracket-corner button with fill-sweep */
+function CtaButton() {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <a
+      href="#contact"
+      data-testid="link-cta"
+      className="relative inline-flex items-center gap-2 select-none cursor-pointer"
+      style={{
+        padding: "7px 18px",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        color: hov ? "#0A0A0A" : "#00E5FF",
+        border: "1px solid rgba(0,229,255,0.55)",
+        background: "transparent",
+        overflow: "hidden",
+        transition: "color 0.22s",
+        userSelect: "none",
+      }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      onMouseDown={(e) =>
+        ((e.currentTarget as HTMLElement).style.transform = "scale(0.96)")
+      }
+      onMouseUp={(e) =>
+        ((e.currentTarget as HTMLElement).style.transform = "scale(1)")
+      }
+    >
+      {/* Sweep fill */}
+      <motion.span
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "#00E5FF",
+          originX: 0,
+        }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: hov ? 1 : 0 }}
+        transition={{ duration: 0.22, ease: "easeInOut" }}
+      />
+
+      {/* Corner brackets — TL */}
+      <span
+        style={{
+          position: "absolute",
+          top: 3,
+          left: 3,
+          width: 7,
+          height: 7,
+          borderTop: "1.5px solid #00E5FF",
+          borderLeft: "1.5px solid #00E5FF",
+          zIndex: 2,
+          opacity: hov ? 0 : 1,
+          transition: "opacity 0.15s",
+        }}
+      />
+      {/* BR */}
+      <span
+        style={{
+          position: "absolute",
+          bottom: 3,
+          right: 3,
+          width: 7,
+          height: 7,
+          borderBottom: "1.5px solid #00E5FF",
+          borderRight: "1.5px solid #00E5FF",
+          zIndex: 2,
+          opacity: hov ? 0 : 1,
+          transition: "opacity 0.15s",
+        }}
+      />
+
+      {/* Text */}
+      <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{ fontFamily: "monospace", opacity: hov ? 1 : 0.5, transition: "opacity 0.2s" }}>{">"}</span>
+        {hov ? "INITIALIZE" : "GET STARTED"}
+      </span>
+    </a>
+  );
+}
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [activeLink, setActiveLink] = useState<string | null>(null);
+  const [arrowHovered, setArrowHovered] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -74,194 +217,150 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const collapsed = scrolled && !hovered;
+  const navVisible = !scrolled || arrowHovered;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
-      {/* 2px top accent line */}
-      <div
-        style={{
-          height: 2,
-          background:
-            "linear-gradient(to right, transparent 0%, #00E5FF 25%, rgba(0,229,255,0.4) 50%, #00E5FF 75%, transparent 100%)",
+    <>
+      {/* ── Full navbar — slides up when scrolled ── */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-50"
+        animate={{
+          y: navVisible ? 0 : "-100%",
+          opacity: navVisible ? 1 : 0,
         }}
-      />
-
-      {/* Main bar */}
-      <div
-        style={{
-          background: "rgba(8,8,8,0.88)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(0,229,255,0.1)",
-        }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       >
+        {/* Top accent line */}
         <div
-          className="relative mx-auto flex items-center justify-between"
-          style={{ maxWidth: 1200, height: 64, padding: "0 28px" }}
+          style={{
+            height: 2,
+            background:
+              "linear-gradient(to right, transparent 0%, #00E5FF 25%, rgba(0,229,255,0.35) 50%, #00E5FF 75%, transparent 100%)",
+          }}
+        />
+
+        {/* Bar */}
+        <div
+          style={{
+            background: "rgba(8,8,8,0.90)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(0,229,255,0.08)",
+          }}
         >
-
-          {/* Left accent stripe */}
           <div
-            style={{
-              position: "absolute",
-              left: 0,
-              top: "20%",
-              bottom: "20%",
-              width: 3,
-              background: "#00E5FF",
-              boxShadow: "0 0 8px rgba(0,229,255,0.8)",
-              borderRadius: 2,
-            }}
-          />
-
-          {/* ── Logo ── */}
-          <a
-            href="#"
-            className="flex items-center gap-2 shrink-0 pl-3"
-            data-testid="link-logo"
+            className="relative mx-auto flex items-center justify-between"
+            style={{ maxWidth: 1200, height: 60, padding: "0 28px" }}
           >
-            <span
-              className="font-mono font-bold"
-              style={{ color: "#00E5FF", fontSize: 15, letterSpacing: "0.05em" }}
-            >
-              //
-            </span>
-            <span
-              className="font-bold text-white"
-              style={{ fontSize: 20, letterSpacing: "0.22em" }}
-            >
-              WEBFORGE
-            </span>
-            <Cursor />
-          </a>
-
-          {/* ── Center nav ── */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            data-testid="nav-engine"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {!collapsed ? (
-                <motion.div
-                  key="links"
-                  className="flex items-center"
-                  style={{ gap: 4 }}
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={spring}
-                >
-                  {NAV_LINKS.map((link, i) => (
-                    <motion.a
-                      key={link.href}
-                      href={link.href}
-                      className="relative px-4 py-1 text-xs font-semibold tracking-widest uppercase transition-colors"
-                      style={{
-                        color:
-                          activeLink === link.href
-                            ? "#00E5FF"
-                            : "rgba(255,255,255,0.5)",
-                      }}
-                      data-testid={`link-nav-${i}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.05 }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#ffffff";
-                        setActiveLink(link.href);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-                        setActiveLink(null);
-                      }}
-                      onClick={() => setActiveLink(link.href)}
-                    >
-                      {link.label}
-                      {/* Underline */}
-                      <motion.span
-                        style={{
-                          position: "absolute",
-                          bottom: -1,
-                          left: "50%",
-                          x: "-50%",
-                          height: 1,
-                          background: "#00E5FF",
-                          boxShadow: "0 0 4px #00E5FF",
-                        }}
-                        initial={{ width: 0 }}
-                        whileHover={{ width: "80%" }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    </motion.a>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.button
-                  key="rhombus"
-                  className="flex items-center justify-center cursor-pointer"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    background: "rgba(0,229,255,0.07)",
-                    border: "1px solid rgba(0,229,255,0.55)",
-                    boxShadow: "0 0 10px rgba(0,229,255,0.25)",
-                    transform: "rotate(45deg)",
-                  }}
-                  initial={{ opacity: 0, scale: 0.3, rotate: 0 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 45 }}
-                  exit={{ opacity: 0, scale: 0.3, rotate: 0 }}
-                  transition={spring}
-                  data-testid="button-nav-collapse"
-                  aria-label="Expand navigation"
-                >
-                  <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
-                    <ChevronDown size={13} color="#00E5FF" strokeWidth={2.5} />
-                  </span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* ── CTA ── */}
-          <div className="shrink-0" data-testid="nav-cta">
-            <a
-              href="#contact"
-              className="inline-flex items-center px-5 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all"
+            {/* Left stripe */}
+            <div
               style={{
-                color: "#0A0A0A",
+                position: "absolute",
+                left: 0,
+                top: "22%",
+                bottom: "22%",
+                width: 3,
                 background: "#00E5FF",
-                letterSpacing: "0.15em",
-                boxShadow: "0 0 0px rgba(0,229,255,0)",
-                transition: "box-shadow 0.2s, transform 0.1s",
+                boxShadow: "0 0 8px rgba(0,229,255,0.8)",
+                borderRadius: 2,
               }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 0 18px rgba(0,229,255,0.55)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 0 0px rgba(0,229,255,0)";
-              }}
-              onMouseDown={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "scale(0.97)";
-              }}
-              onMouseUp={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-              }}
-              data-testid="link-cta"
+            />
+
+            {/* Logo */}
+            <a
+              href="#"
+              className="flex items-center gap-2 shrink-0 pl-3"
+              data-testid="link-logo"
             >
-              Get Started
+              <span className="font-mono font-bold" style={{ color: "#00E5FF", fontSize: 14 }}>
+                //
+              </span>
+              <span className="font-bold text-white" style={{ fontSize: 20, letterSpacing: "0.22em" }}>
+                WEBFORGE
+              </span>
+              <Cursor />
             </a>
+
+            {/* Center nav */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 flex items-center"
+            >
+              <motion.div
+                className="flex items-center"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {NAV_LINKS.map((link, i) => (
+                  <div key={link.href} className="flex items-center">
+                    {/* Vertical divider before each link (except first) */}
+                    {i > 0 && (
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 1,
+                          height: 12,
+                          background: "rgba(0,229,255,0.2)",
+                          margin: "0 2px",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                    <MagneticLink href={link.href} label={link.label} index={i} />
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* CTA */}
+            <div className="shrink-0">
+              <CtaButton />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Animated scan line at the bottom */}
-      <ScanLine />
-    </div>
+        <ScanLine />
+      </motion.div>
+
+      {/* ── Floating arrow — visible only when scrolled ── */}
+      <AnimatePresence>
+        {scrolled && (
+          <motion.div
+            className="fixed z-50 flex items-center justify-center"
+            style={{
+              top: 10,
+              left: "50%",
+              translateX: "-50%",
+              width: 32,
+              height: 32,
+              background: arrowHovered
+                ? "rgba(0,229,255,0.15)"
+                : "rgba(8,8,8,0.85)",
+              border: "1px solid rgba(0,229,255,0.55)",
+              boxShadow: arrowHovered
+                ? "0 0 14px rgba(0,229,255,0.4)"
+                : "0 0 6px rgba(0,229,255,0.2)",
+              transform: "rotate(45deg)",
+              cursor: "pointer",
+              backdropFilter: "blur(12px)",
+              transition: "background 0.18s, box-shadow 0.18s",
+            }}
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.4 }}
+            transition={{ duration: 0.18 }}
+            onMouseEnter={() => setArrowHovered(true)}
+            onMouseLeave={() => setArrowHovered(false)}
+            data-testid="button-nav-arrow"
+            aria-label="Show navigation"
+          >
+            <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
+              <ChevronDown size={13} color="#00E5FF" strokeWidth={2.5} />
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
