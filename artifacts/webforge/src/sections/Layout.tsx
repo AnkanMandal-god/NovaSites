@@ -11,37 +11,62 @@ const NAV_LINKS = [
 
 const spring = { type: "spring", stiffness: 300, damping: 30 };
 
-/* Corner bracket decoration */
-function Bracket({
-  pos,
-}: {
-  pos: "tl" | "tr" | "bl" | "br";
-}) {
-  const size = 8;
-  const thickness = 1.5;
-  const color = "rgba(0,229,255,0.7)";
-  const styles: Record<string, React.CSSProperties> = {
-    tl: { top: 3, left: 3, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` },
-    tr: { top: 3, right: 3, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` },
-    bl: { bottom: 3, left: 3, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` },
-    br: { bottom: 3, right: 3, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` },
-  };
+/* Blinking terminal cursor */
+function Cursor() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const t = setInterval(() => setOn((v) => !v), 530);
+    return () => clearInterval(t);
+  }, []);
   return (
     <span
       style={{
-        position: "absolute",
-        width: size,
-        height: size,
-        ...styles[pos],
-        pointerEvents: "none",
+        display: "inline-block",
+        width: 2,
+        height: "1em",
+        background: on ? "#00E5FF" : "transparent",
+        marginLeft: 3,
+        verticalAlign: "middle",
+        transition: "background 0.1s",
       }}
     />
+  );
+}
+
+/* Animated scan line that travels across the bottom border */
+function ScanLine() {
+  return (
+    <div style={{ position: "relative", height: 1, overflow: "hidden" }}>
+      {/* Static dim base */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,229,255,0.12)",
+        }}
+      />
+      {/* Moving glow */}
+      <motion.div
+        style={{
+          position: "absolute",
+          top: 0,
+          width: 180,
+          height: 1,
+          background:
+            "linear-gradient(to right, transparent, #00E5FF 40%, #00E5FF 60%, transparent)",
+          filter: "blur(1px)",
+        }}
+        animate={{ x: ["-180px", "100vw"] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+      />
+    </div>
   );
 }
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [activeLink, setActiveLink] = useState<string | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -52,181 +77,190 @@ export function Navbar() {
   const collapsed = scrolled && !hovered;
 
   return (
-    <div
-      className="fixed top-0 left-0 right-0 z-50"
-      style={{ padding: "10px 24px 0" }}
-    >
-      {/* HUD bar */}
+    <div className="fixed top-0 left-0 right-0 z-50">
+      {/* 2px top accent line */}
       <div
-        className="relative mx-auto flex items-center justify-between"
         style={{
-          maxWidth: 1200,
-          height: 48,
-          background: "rgba(10,10,10,0.75)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          border: "1px solid rgba(0,229,255,0.18)",
-          borderBottom: "1px solid rgba(0,229,255,0.35)",
-          clipPath:
-            "polygon(10px 0%, calc(100% - 10px) 0%, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0% calc(100% - 10px), 0% 10px)",
-          padding: "0 20px",
+          height: 2,
+          background:
+            "linear-gradient(to right, transparent 0%, #00E5FF 25%, rgba(0,229,255,0.4) 50%, #00E5FF 75%, transparent 100%)",
+        }}
+      />
+
+      {/* Main bar */}
+      <div
+        style={{
+          background: "rgba(8,8,8,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(0,229,255,0.1)",
         }}
       >
-        {/* Corner brackets */}
-        <Bracket pos="tl" />
-        <Bracket pos="tr" />
-        <Bracket pos="bl" />
-        <Bracket pos="br" />
-
-        {/* Scanning line at bottom */}
         <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: "15%",
-            right: "15%",
-            height: 1,
-            background:
-              "linear-gradient(to right, transparent, #00E5FF 30%, #00E5FF 70%, transparent)",
-            opacity: 0.6,
-          }}
-        />
-
-        {/* ── Logo ── */}
-        <a
-          href="#"
-          className="flex items-center gap-2 shrink-0"
-          data-testid="link-logo"
+          className="relative mx-auto flex items-center justify-between"
+          style={{ maxWidth: 1200, height: 64, padding: "0 28px" }}
         >
-          <span
-            className="font-mono text-[10px] tracking-widest"
-            style={{ color: "#00E5FF" }}
-          >
-            //
-          </span>
-          <span className="text-white font-bold tracking-[0.2em] text-sm">
-            WEBFORGE
-          </span>
-          <span
-            className="font-mono text-[9px] hidden sm:block"
-            style={{ color: "rgba(0,229,255,0.4)" }}
-          >
-            v2.4
-          </span>
-        </a>
 
-        {/* ── Center nav engine ── */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 flex items-center"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          data-testid="nav-engine"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {!collapsed ? (
-              <motion.div
-                key="links"
-                className="flex items-center"
-                style={{ gap: 2 }}
-                initial={{ opacity: 0, scaleX: 0.5 }}
-                animate={{ opacity: 1, scaleX: 1 }}
-                exit={{ opacity: 0, scaleX: 0.5 }}
-                transition={spring}
-              >
-                {NAV_LINKS.map((link, i) => (
-                  <motion.a
-                    key={link.href}
-                    href={link.href}
-                    className="relative px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-colors group"
-                    style={{ color: "rgba(255,255,255,0.55)" }}
-                    data-testid={`link-nav-${i}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#00E5FF")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "rgba(255,255,255,0.55)")
-                    }
-                  >
-                    {link.label}
-                    {/* bottom accent on hover */}
-                    <span
-                      style={{
-                        position: "absolute",
-                        bottom: -1,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: 0,
-                        height: "1px",
-                        background: "#00E5FF",
-                        transition: "width 0.2s ease",
-                      }}
-                      className="group-hover:w-full"
-                    />
-                  </motion.a>
-                ))}
-              </motion.div>
-            ) : (
-              <motion.button
-                key="rhombus"
-                className="flex items-center justify-center cursor-pointer"
-                style={{
-                  width: 28,
-                  height: 28,
-                  background: "rgba(0,229,255,0.08)",
-                  border: "1px solid rgba(0,229,255,0.6)",
-                  boxShadow: "0 0 8px rgba(0,229,255,0.3)",
-                  transform: "rotate(45deg)",
-                  clipPath: "none",
-                }}
-                initial={{ opacity: 0, scale: 0.2, rotate: 0 }}
-                animate={{ opacity: 1, scale: 1, rotate: 45 }}
-                exit={{ opacity: 0, scale: 0.2, rotate: 0 }}
-                transition={spring}
-                data-testid="button-nav-collapse"
-                aria-label="Expand navigation"
-              >
-                <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
-                  <ChevronDown size={12} color="#00E5FF" strokeWidth={2.5} />
-                </span>
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* ── CTA ── */}
-        <div className="shrink-0" data-testid="nav-cta">
-          <a
-            href="#contact"
-            className="relative inline-flex items-center px-4 py-1.5 text-[11px] font-bold tracking-[0.15em] uppercase transition-all"
+          {/* Left accent stripe */}
+          <div
             style={{
-              color: "#0A0A0A",
+              position: "absolute",
+              left: 0,
+              top: "20%",
+              bottom: "20%",
+              width: 3,
               background: "#00E5FF",
-              clipPath:
-                "polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%)",
-              letterSpacing: "0.12em",
+              boxShadow: "0 0 8px rgba(0,229,255,0.8)",
+              borderRadius: 2,
             }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                "0 0 12px rgba(0,229,255,0.5)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = "none";
-            }}
-            onMouseDown={(e) => {
-              (e.currentTarget as HTMLElement).style.transform = "scale(0.97)";
-            }}
-            onMouseUp={(e) => {
-              (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-            }}
-            data-testid="link-cta"
+          />
+
+          {/* ── Logo ── */}
+          <a
+            href="#"
+            className="flex items-center gap-2 shrink-0 pl-3"
+            data-testid="link-logo"
           >
-            Get Started
+            <span
+              className="font-mono font-bold"
+              style={{ color: "#00E5FF", fontSize: 15, letterSpacing: "0.05em" }}
+            >
+              //
+            </span>
+            <span
+              className="font-bold text-white"
+              style={{ fontSize: 20, letterSpacing: "0.22em" }}
+            >
+              WEBFORGE
+            </span>
+            <Cursor />
           </a>
+
+          {/* ── Center nav ── */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2"
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            data-testid="nav-engine"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {!collapsed ? (
+                <motion.div
+                  key="links"
+                  className="flex items-center"
+                  style={{ gap: 4 }}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={spring}
+                >
+                  {NAV_LINKS.map((link, i) => (
+                    <motion.a
+                      key={link.href}
+                      href={link.href}
+                      className="relative px-4 py-1 text-xs font-semibold tracking-widest uppercase transition-colors"
+                      style={{
+                        color:
+                          activeLink === link.href
+                            ? "#00E5FF"
+                            : "rgba(255,255,255,0.5)",
+                      }}
+                      data-testid={`link-nav-${i}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#ffffff";
+                        setActiveLink(link.href);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+                        setActiveLink(null);
+                      }}
+                      onClick={() => setActiveLink(link.href)}
+                    >
+                      {link.label}
+                      {/* Underline */}
+                      <motion.span
+                        style={{
+                          position: "absolute",
+                          bottom: -1,
+                          left: "50%",
+                          x: "-50%",
+                          height: 1,
+                          background: "#00E5FF",
+                          boxShadow: "0 0 4px #00E5FF",
+                        }}
+                        initial={{ width: 0 }}
+                        whileHover={{ width: "80%" }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </motion.a>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="rhombus"
+                  className="flex items-center justify-center cursor-pointer"
+                  style={{
+                    width: 30,
+                    height: 30,
+                    background: "rgba(0,229,255,0.07)",
+                    border: "1px solid rgba(0,229,255,0.55)",
+                    boxShadow: "0 0 10px rgba(0,229,255,0.25)",
+                    transform: "rotate(45deg)",
+                  }}
+                  initial={{ opacity: 0, scale: 0.3, rotate: 0 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 45 }}
+                  exit={{ opacity: 0, scale: 0.3, rotate: 0 }}
+                  transition={spring}
+                  data-testid="button-nav-collapse"
+                  aria-label="Expand navigation"
+                >
+                  <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
+                    <ChevronDown size={13} color="#00E5FF" strokeWidth={2.5} />
+                  </span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── CTA ── */}
+          <div className="shrink-0" data-testid="nav-cta">
+            <a
+              href="#contact"
+              className="inline-flex items-center px-5 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all"
+              style={{
+                color: "#0A0A0A",
+                background: "#00E5FF",
+                letterSpacing: "0.15em",
+                boxShadow: "0 0 0px rgba(0,229,255,0)",
+                transition: "box-shadow 0.2s, transform 0.1s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 0 18px rgba(0,229,255,0.55)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 0 0px rgba(0,229,255,0)";
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = "scale(0.97)";
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+              }}
+              data-testid="link-cta"
+            >
+              Get Started
+            </a>
+          </div>
         </div>
       </div>
+
+      {/* Animated scan line at the bottom */}
+      <ScanLine />
     </div>
   );
 }
