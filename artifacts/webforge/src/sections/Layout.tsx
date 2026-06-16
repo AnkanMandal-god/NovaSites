@@ -76,8 +76,8 @@ function MagneticLink({
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    rawX.set((e.clientX - (r.left + r.width / 2)) * 0.28);
-    rawY.set((e.clientY - (r.top + r.height / 2)) * 0.28);
+    rawX.set((e.clientX - (r.left + r.width / 2)) * 0.238);
+    rawY.set((e.clientY - (r.top + r.height / 2)) * 0.238);
   };
   const onLeave = () => {
     rawX.set(0);
@@ -322,41 +322,83 @@ export function Navbar() {
         <ScanLine />
       </motion.div>
 
-      {/* ── Floating arrow — visible only when scrolled ── */}
+      {/* ── Trapezoid arrow tab — hangs from top when scrolled ── */}
       <AnimatePresence>
         {scrolled && (
           <motion.div
-            className="fixed z-50 flex items-center justify-center"
+            className="fixed z-50"
             style={{
-              top: 10,
+              top: 0,
               left: "50%",
               translateX: "-50%",
-              width: 32,
-              height: 32,
-              background: arrowHovered
-                ? "rgba(0,229,255,0.15)"
-                : "rgba(8,8,8,0.85)",
-              border: "1px solid rgba(0,229,255,0.55)",
-              boxShadow: arrowHovered
-                ? "0 0 14px rgba(0,229,255,0.4)"
-                : "0 0 6px rgba(0,229,255,0.2)",
-              transform: "rotate(45deg)",
               cursor: "pointer",
-              backdropFilter: "blur(12px)",
-              transition: "background 0.18s, box-shadow 0.18s",
             }}
-            initial={{ opacity: 0, scale: 0.4 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.4 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
             onMouseEnter={() => setArrowHovered(true)}
             onMouseLeave={() => setArrowHovered(false)}
             data-testid="button-nav-arrow"
             aria-label="Show navigation"
           >
-            <span style={{ transform: "rotate(-45deg)", display: "flex" }}>
-              <ChevronDown size={13} color="#00E5FF" strokeWidth={2.5} />
-            </span>
+            {(() => {
+              /* Trapezoid geometry: wider top, narrower bottom, hangs from top edge */
+              const TW = 88;   /* top width  */
+              const BW = 52;   /* bottom width */
+              const H  = 42;   /* height */
+              const inset = (TW - BW) / 2; /* = 18 */
+              /* SVG polygon points */
+              const pts = `0,0 ${TW},0 ${TW - inset},${H} ${inset},${H}`;
+              /* Perimeter for dash animation */
+              const sideLen = Math.sqrt(inset * inset + H * H); /* ≈ 47.5 */
+              const perim = TW + sideLen + BW + sideLen;         /* ≈ 235 */
+              const dashLen = 60;
+
+              return (
+                <svg
+                  width={TW}
+                  height={H}
+                  viewBox={`0 0 ${TW} ${H}`}
+                  style={{ display: "block", filter: arrowHovered ? "drop-shadow(0 0 6px rgba(0,229,255,0.5))" : "none", transition: "filter 0.18s" }}
+                  overflow="visible"
+                >
+                  {/* Fill */}
+                  <polygon
+                    points={pts}
+                    fill={arrowHovered ? "rgba(0,229,255,0.10)" : "rgba(8,8,8,0.88)"}
+                    style={{ transition: "fill 0.18s" }}
+                  />
+
+                  {/* Static dim border */}
+                  <polygon
+                    points={pts}
+                    fill="none"
+                    stroke="rgba(0,229,255,0.18)"
+                    strokeWidth={1}
+                  />
+
+                  {/* Animated perimeter glow segment */}
+                  <motion.polygon
+                    points={pts}
+                    fill="none"
+                    stroke="#00E5FF"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeDasharray={`${dashLen} ${perim - dashLen}`}
+                    animate={{ strokeDashoffset: [0, -perim] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+                    style={{ filter: "drop-shadow(0 0 2px #00E5FF)" }}
+                  />
+
+                  {/* Chevron icon, centered */}
+                  <g transform={`translate(${TW / 2}, ${H * 0.52})`}>
+                    <line x1="-5" y1="-2" x2="0" y2="3" stroke="#00E5FF" strokeWidth={1.8} strokeLinecap="round" />
+                    <line x1="0" y1="3" x2="5" y2="-2" stroke="#00E5FF" strokeWidth={1.8} strokeLinecap="round" />
+                  </g>
+                </svg>
+              );
+            })()}
           </motion.div>
         )}
       </AnimatePresence>
