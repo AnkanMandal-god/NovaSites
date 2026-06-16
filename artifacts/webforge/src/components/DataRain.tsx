@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 
+/* Refined charset: hex, symbols, alphanumeric — avoids dense green cliché */
 const CHARS =
-  "ABCDEF0123456789_*/\\#@!?><|~^abcdef0123456789//A4C9FF00E5B8D3";
+  "ABCDEF0123456789_*/\\#@!?><|~^abcdef//A4C9FF00E5B8D3 01";
 
 export function DataRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -12,92 +13,76 @@ export function DataRain() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const FONT_SIZE = 13;
-    const TRAIL = 8;       // characters in the fading tail
-    const GLOBAL_ALPHA = 0.07;
+    const FONT_SIZE = 14;
+    const COL_GAP   = FONT_SIZE * 1.7;   /* horizontal spacing between columns */
+    const BG_COLOR   = "18,18,18";        /* #121212 */
+    const FADE_ALPHA = 0.06;              /* lower = longer trail */
 
     type Column = {
       x: number;
-      y: number;           // current lead y in px
-      speed: number;       // px per frame
-      chars: string[];     // ring buffer of TRAIL chars
-      head: number;        // ring buffer index
+      y: number;
+      speed: number;
+      char: string;
     };
 
     let cols: Column[] = [];
     let raf: number;
-
-    function resize() {
-      canvas!.width = window.innerWidth;
-      canvas!.height = window.innerHeight;
-      build();
-    }
 
     function randChar() {
       return CHARS[Math.floor(Math.random() * CHARS.length)];
     }
 
     function build() {
-      const numCols = Math.floor(canvas!.width / (FONT_SIZE * 1.6));
+      const numCols = Math.floor(canvas!.width / COL_GAP);
       cols = Array.from({ length: numCols }, (_, i) => ({
-        x: i * FONT_SIZE * 1.6 + FONT_SIZE * 0.3,
-        y: -Math.random() * canvas!.height,
-        speed: 0.6 + Math.random() * 1.1,
-        chars: Array.from({ length: TRAIL }, randChar),
-        head: 0,
+        x: i * COL_GAP + COL_GAP * 0.3,
+        y: Math.random() * -canvas!.height,   /* stagger start times */
+        speed: 0.5 + Math.random() * 1.2,
+        char: randChar(),
       }));
+
+      /* Fill with background on resize so old frame doesn't show */
+      ctx!.fillStyle = `rgb(${BG_COLOR})`;
+      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
+    }
+
+    function resize() {
+      canvas!.width  = window.innerWidth;
+      canvas!.height = window.innerHeight;
+      build();
     }
 
     function draw() {
       if (!ctx || !canvas) return;
 
-      // Clear with full transparency (no persistent fade trail — we paint manually)
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      /* Semi-transparent overlay → trails naturally fade out each frame */
+      ctx.fillStyle = `rgba(${BG_COLOR},${FADE_ALPHA})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.globalAlpha = GLOBAL_ALPHA;
       ctx.font = `${FONT_SIZE}px "Courier New", Courier, monospace`;
       ctx.textBaseline = "top";
 
       for (const col of cols) {
-        // Advance lead
         col.y += col.speed;
 
-        // Reset when the full trail exits the bottom
-        if (col.y - TRAIL * FONT_SIZE > canvas.height) {
-          col.y = -FONT_SIZE * 2;
-          col.chars = Array.from({ length: TRAIL }, randChar);
-          col.head = 0;
-        }
+        /* Occasionally swap character for a "live typing" flicker */
+        if (Math.random() < 0.1) col.char = randChar();
 
-        // Randomly mutate head character for live "typing" feel
-        if (Math.random() < 0.08) {
-          col.chars[col.head] = randChar();
-        }
+        /* Bright lead character */
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle   = "#ffffff";
+        ctx.fillText(col.char, col.x, col.y);
 
-        // Draw trail — index 0 is the lead, TRAIL-1 is the oldest
-        for (let t = 0; t < TRAIL; t++) {
-          const charIdx = (col.head - t + TRAIL) % TRAIL;
-          const ch = col.chars[charIdx];
-          const py = col.y - t * FONT_SIZE;
-
-          if (py < -FONT_SIZE || py > canvas.height) continue;
-
-          // Alpha fades from 1 (lead) to ~0 (tail)
-          const a = t === 0 ? 1 : Math.max(0, 1 - t / (TRAIL - 1));
-          ctx.globalAlpha = GLOBAL_ALPHA * a;
-
-          // Lead char is bright white; trail chars are off-white
-          ctx.fillStyle = t === 0 ? "#ffffff" : "rgba(255,255,255,0.9)";
-          ctx.fillText(ch, col.x, py);
-        }
-
-        // Advance ring buffer head so next frame shows a new char at the top
-        if (Math.random() < col.speed * 0.15) {
-          col.head = (col.head + 1) % TRAIL;
-          col.chars[col.head] = randChar();
+        /* Reset column when it exits the bottom */
+        if (col.y > canvas.height + FONT_SIZE * 4) {
+          col.y    = -FONT_SIZE * (2 + Math.random() * 10);
+          col.char = randChar();
+          /* Vary speed on reset for depth */
+          col.speed = 0.5 + Math.random() * 1.2;
         }
       }
 
+      ctx.globalAlpha = 1;
       raf = requestAnimationFrame(draw);
     }
 
@@ -120,8 +105,9 @@ export function DataRain() {
         left: 0,
         width: "100vw",
         height: "100vh",
-        zIndex: 0,
+        zIndex: 15,
         pointerEvents: "none",
+        opacity: 0.55,        /* master opacity — tweak here to taste */
       }}
     />
   );
