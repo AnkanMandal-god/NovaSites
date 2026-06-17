@@ -22,6 +22,10 @@ const PILLARS = [
   },
 ];
 
+/* Classic heraldic shield — curved sides, pointed bottom */
+const SHIELD_PATH =
+  "M100 12 C148 12 182 36 182 74 L182 138 C182 186 100 224 100 224 C100 224 18 186 18 138 L18 74 C18 36 52 12 100 12 Z";
+
 function PillarCard({
   pillar,
   index,
@@ -36,7 +40,6 @@ function PillarCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
-  /* Track card dimensions for the SVG border trace */
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return;
@@ -47,14 +50,11 @@ function PillarCard({
     return () => ro.disconnect();
   }, []);
 
-  /* Typewriter — completes in ~250ms */
+  /* Typewriter — ~900ms total for a relaxed token-stream feel */
   useEffect(() => {
-    if (!hov) {
-      setTypedText("");
-      return;
-    }
+    if (!hov) { setTypedText(""); return; }
     let i = 0;
-    const interval = Math.max(1, 250 / pillar.expanded.length);
+    const interval = Math.max(2, 900 / pillar.expanded.length);
     const t = setInterval(() => {
       i++;
       setTypedText(pillar.expanded.slice(0, i));
@@ -64,7 +64,7 @@ function PillarCard({
   }, [hov, pillar.expanded]);
 
   const perimeter = 2 * (dims.w + dims.h);
-  const DASH = 80;
+  const DASH = 90;
 
   return (
     <motion.div
@@ -75,14 +75,17 @@ function PillarCard({
       transition={{ duration: 0.4, delay: index * 0.08 }}
       style={{
         position: "relative",
-        padding: hov ? "18px 22px 20px" : "18px 22px 14px",
-        transition: "padding 0.22s ease",
+        /* ── Restored card visual style ── */
+        padding: hov ? "20px 22px 22px" : "20px 22px 14px",
+        borderLeft: `2px solid ${hov ? "#00E5FF" : "rgba(0,229,255,0.18)"}`,
+        background: hov ? "rgba(0,229,255,0.03)" : "transparent",
+        transition: "padding 0.25s ease, border-color 0.22s, background 0.22s",
         cursor: "default",
       }}
       onMouseEnter={() => { setHov(true); onHoverChange(true); }}
       onMouseLeave={() => { setHov(false); onHoverChange(false); }}
     >
-      {/* Traveling perimeter border — only on hover */}
+      {/* Traveling perimeter border on hover */}
       {hov && dims.w > 0 && perimeter > 0 && (
         <svg
           style={{
@@ -96,8 +99,7 @@ function PillarCard({
           }}
         >
           <motion.rect
-            x={0.5}
-            y={0.5}
+            x={0.5} y={0.5}
             width={dims.w - 1}
             height={dims.h - 1}
             fill="none"
@@ -111,46 +113,42 @@ function PillarCard({
         </svg>
       )}
 
-      {/* Content above the SVG */}
       <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Number + title row */}
-        <div className="flex items-baseline gap-3 mb-1">
-          <span
-            style={{
-              fontFamily: "monospace",
-              fontSize: 10,
-              color: "rgba(0,229,255,0.4)",
-              letterSpacing: "0.15em",
-              flexShrink: 0,
-            }}
-          >
-            {pillar.num}
-          </span>
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: "#00E5FF",
-              letterSpacing: "-0.01em",
-              lineHeight: 1.2,
-            }}
-          >
-            {pillar.title}
-          </span>
-        </div>
-
-        {/* Subtext */}
-        <div
+        {/* Number badge */}
+        <span
           style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.75)",
-            marginTop: 4,
+            display: "block",
+            fontFamily: "monospace",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            color: hov ? "#00E5FF" : "rgba(0,229,255,0.4)",
+            transition: "color 0.22s",
+            marginBottom: 6,
+          }}
+        >
+          {pillar.num} ——
+        </span>
+
+        {/* Title */}
+        <strong
+          style={{
+            display: "block",
+            fontSize: 15,
+            fontWeight: 700,
+            color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
+            marginBottom: 4,
+            transition: "color 0.2s",
             letterSpacing: "0.01em",
           }}
         >
+          {pillar.title}
+        </strong>
+
+        {/* Subtext (always visible) */}
+        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.5 }}>
           {pillar.subtext}
-        </div>
+        </span>
 
         {/* Expanded typewriter text */}
         {hov && (
@@ -158,14 +156,14 @@ function PillarCard({
             style={{
               fontSize: 12.5,
               lineHeight: 1.65,
-              color: "rgba(255,255,255,0.48)",
+              color: "rgba(255,255,255,0.5)",
               marginTop: 10,
-              maxWidth: 420,
+              maxWidth: 400,
             }}
           >
             {typedText}
             {typedText.length < pillar.expanded.length && (
-              <span style={{ opacity: 0.6, fontFamily: "monospace" }}>▌</span>
+              <span style={{ opacity: 0.5, fontFamily: "monospace" }}>▌</span>
             )}
           </div>
         )}
@@ -177,7 +175,7 @@ function PillarCard({
               fontFamily: "monospace",
               fontSize: 9.5,
               color: "rgba(255,255,255,0.18)",
-              marginTop: 8,
+              marginTop: 7,
               letterSpacing: "0.1em",
             }}
           >
@@ -185,99 +183,112 @@ function PillarCard({
           </div>
         )}
       </div>
+
+      {/* Corner accent (top-right) on hover */}
+      <span
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          width: 8,
+          height: 8,
+          borderTop: "1.5px solid #00E5FF",
+          borderRight: "1.5px solid #00E5FF",
+          opacity: hov ? 0.75 : 0,
+          transition: "opacity 0.2s",
+        }}
+      />
     </motion.div>
   );
 }
 
-/* Shield — floating, dual counter-rotating perimeter traces, scales on card hover */
+/* Neon heraldic shield — matches reference: curved body, strong ambient glow, dual traces */
 function Shield({ enlarged }: { enlarged: boolean }) {
-  const PATH = "M100 8L188 44V122C188 178 100 232 100 232C100 232 12 178 12 122V44L100 8Z";
-
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 20,
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
       <motion.div
-        animate={{ scale: enlarged ? 1.32 : 1 }}
-        transition={{ type: "spring", stiffness: 220, damping: 22 }}
+        animate={{ scale: enlarged ? 1.28 : 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
         style={{ originX: 0.5, originY: 0.5 }}
       >
         <svg
-          width="230"
-          height="276"
-          viewBox="0 0 200 240"
+          width="220"
+          height="240"
+          viewBox="0 0 200 236"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Ambient inner fill */}
+          {/* Outer diffuse glow (largest, dimmest) */}
           <path
-            d={PATH}
-            fill="rgba(0,229,255,0.04)"
+            d={SHIELD_PATH}
+            fill="none"
+            stroke="rgba(0,229,255,0.06)"
+            strokeWidth={28}
+            strokeLinejoin="round"
+            style={{ filter: "blur(14px)" }}
           />
 
-          {/* Static dim outline */}
+          {/* Mid ambient glow */}
           <path
-            d={PATH}
-            stroke="rgba(0,229,255,0.15)"
+            d={SHIELD_PATH}
+            fill="none"
+            stroke="rgba(0,229,255,0.14)"
+            strokeWidth={14}
+            strokeLinejoin="round"
+            style={{ filter: "blur(6px)" }}
+          />
+
+          {/* Inner fill — very dark so shield "body" feels deep */}
+          <path
+            d={SHIELD_PATH}
+            fill="rgba(0,10,20,0.7)"
+          />
+
+          {/* Static base outline */}
+          <path
+            d={SHIELD_PATH}
+            fill="none"
+            stroke="rgba(0,229,255,0.22)"
             strokeWidth={1.5}
+            strokeLinejoin="round"
           />
 
-          {/* Clockwise trace */}
+          {/* Clockwise bright trace */}
           <motion.path
-            d={PATH}
+            d={SHIELD_PATH}
             fill="none"
             stroke="#00E5FF"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pathLength={1}
+            strokeDasharray="0.18 0.82"
+            animate={{ strokeDashoffset: [0, -1] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
+            style={{
+              filter:
+                "drop-shadow(0 0 6px #00E5FF) drop-shadow(0 0 12px rgba(0,229,255,0.7))",
+            }}
+          />
+
+          {/* Counter-clockwise dimmer trace */}
+          <motion.path
+            d={SHIELD_PATH}
+            fill="none"
+            stroke="rgba(0,229,255,0.55)"
             strokeWidth={1.5}
             strokeLinecap="round"
+            strokeLinejoin="round"
             pathLength={1}
-            strokeDasharray="0.14 0.86"
-            animate={{ strokeDashoffset: [0, -1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            style={{ filter: "drop-shadow(0 0 5px rgba(0,229,255,0.9))" }}
-          />
-
-          {/* Counter-clockwise trace */}
-          <motion.path
-            d={PATH}
-            fill="none"
-            stroke="rgba(0,229,255,0.6)"
-            strokeWidth={1}
-            strokeLinecap="round"
-            pathLength={1}
-            strokeDasharray="0.10 0.90"
+            strokeDasharray="0.12 0.88"
             animate={{ strokeDashoffset: [0, 1] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "linear" }}
-            style={{ filter: "drop-shadow(0 0 3px rgba(0,229,255,0.6))" }}
+            transition={{ duration: 4.2, repeat: Infinity, ease: "linear" }}
+            style={{ filter: "drop-shadow(0 0 4px rgba(0,229,255,0.5))" }}
           />
-
-          {/* WEBFORGE monogram */}
-          <motion.text
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            x="100"
-            y="126"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontFamily="'Courier New', monospace"
-            fontSize="17"
-            fontWeight="bold"
-            fill="#00E5FF"
-            fillOpacity="0.8"
-            style={{ letterSpacing: "0.14em" }}
-          >
-            WEBFORGE
-          </motion.text>
         </svg>
       </motion.div>
 
-      {/* Metadata line */}
+      {/* Metadata — white, legible */}
       <motion.p
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -285,13 +296,13 @@ function Shield({ enlarged }: { enlarged: boolean }) {
         transition={{ delay: 0.5 }}
         style={{
           fontFamily: "monospace",
-          fontSize: 9,
-          letterSpacing: "0.15em",
-          color: "rgba(0,229,255,0.3)",
+          fontSize: 10.5,
+          letterSpacing: "0.13em",
+          color: "rgba(255,255,255,0.62)",
           textAlign: "center",
           textTransform: "uppercase",
-          maxWidth: 280,
-          lineHeight: 1.7,
+          maxWidth: 300,
+          lineHeight: 1.8,
         }}
       >
         WEBFORGE CORE STANDARD: 100% HAND-CODED,<br />
@@ -315,7 +326,7 @@ export function WhatWeDo() {
         display: "flex",
         flexDirection: "column",
         padding: "0 48px",
-        paddingTop: 60, /* clear sticky navbar */
+        paddingTop: 60,
         boxSizing: "border-box",
       }}
     >
@@ -329,7 +340,7 @@ export function WhatWeDo() {
           flexDirection: "column",
         }}
       >
-        {/* Section label */}
+        {/* Label */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -370,7 +381,7 @@ export function WhatWeDo() {
           <span style={{ color: "#00E5FF" }}>Engineered to Last.</span>
         </motion.h2>
 
-        {/* Main grid */}
+        {/* Content grid */}
         <div
           style={{
             flex: 1,
@@ -395,13 +406,7 @@ export function WhatWeDo() {
           </div>
 
           {/* Right — Shield */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Shield enlarged={anyHovered} />
           </div>
         </div>
