@@ -1,0 +1,37 @@
+I need to refactor the 'Core Architecture' section into a high-end, interactive technical dashboard. Please follow these requirements:
+
+1. The Shield Component (Dynamic Focal Point):
+
+    Visual Reset: Remove the current square container box and the dark grid background surrounding the shield. The shield must float freely on the dark background.
+
+    Text: Display the text 'WEBFORGE' inside the center of the shield using a sharp, monospaced font.
+
+    Animation: Implement two thin, cyan-blue lines that trace the perimeter of the shield. These lines must travel in opposite directions (one clockwise, one counter-clockwise) continuously to create an active, glowing 'power' effect.
+
+    Interaction: When a user hovers over any of the three architecture cards, the shield must smoothly scale up to become significantly larger, acting as the visual focal point.
+
+2. The Architecture Cards (Minimalist Layout):
+
+    Remove all background containers/glass boxes from the three cards. The text should sit cleanly on the background.
+
+    Maintain the smooth expansion behavior. On hover, the box expands downward to reveal the 'Expanded Info' text, pushing the elements below it fluidly.
+
+    Content:
+
+        Card 1: Title: 'Better Search Rankings' | Subtext: 'Built to be found by your local customers.' | Expanded info (token stream reveal): 'We eliminate unnecessary code so your business dominates local search results, making it easy for customers to find you.'
+
+        Card 2: Title: 'Lightning-Fast Performance' | Subtext: 'Instant loading for zero lost traffic.' | Expanded info (token stream reveal): 'We remove all digital dead weight so your site loads instantly on any phone, ensuring visitors stay and engage.'
+
+        Card 3: Title: 'Designs That Actually Convert' | Subtext: 'Precision layouts designed to drive revenue.' | Expanded info (token stream reveal): 'We strip away distractions to turn every visitor into an actionable business lead, whether that means a phone call or a purchase.'
+
+    Include the dim '[hover to expand]' label at the bottom of each compact card, which vanishes upon hover.
+
+3. Minimalist Metadata (Under the Shield):
+
+    Place the following text directly beneath the shield: 'WEBFORGE CORE STANDARD: 100% HAND-CODED, SEO-OPTIMIZED, PERFORMANCE-FIRST INFRASTRUCTURE.'
+
+    Styling: Remove any container box. Style this as 'system metadata' using an all-caps, monospaced font with increased letter-spacing (e.g., 0.15em). Set the color to a desaturated, soft grey or a dimmed cyan to ensure it feels like a technical descriptor.
+
+4. Responsiveness:
+
+    Ensure the layout is perfectly balanced and fits within a single viewport (100vh) without needing to scroll."

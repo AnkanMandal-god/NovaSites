@@ -349,7 +349,7 @@ export function Navbar() {
               /* Trapezoid geometry: wider top, narrower bottom, hangs from top edge */
               const TW = 88;   /* top width  */
               const BW = 52;   /* bottom width */
-              const H  = 42;   /* height */
+              const H  = 28;   /* height */
               const inset = (TW - BW) / 2; /* = 18 */
               /* SVG polygon points */
               const pts = `0,0 ${TW},0 ${TW - inset},${H} ${inset},${H}`;

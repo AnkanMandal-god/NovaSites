@@ -1,0 +1,49 @@
+I need to implement a high-fidelity 'Core Architecture' section that functions as an interactive technical dashboard. Please follow these specifications exactly:
+
+1. Layout & Structure:
+
+    Display three interactive cards stacked vertically.
+
+    The entire section must be responsive and constrained to fit within a single viewport (100vh) so that all three cards are visible without scrolling.
+
+    Use a layout that ensures when one card expands, the others shift downward fluidly to maintain a clean vertical rhythm.
+
+2. Card Interaction & Behavior:
+
+    Default State: Each card shows a Title (Neon Cyan: #06b6d4), a single-line Subtext (White), and a dim grey label at the bottom: '[hover to expand]'.
+
+    Hover State:
+
+        On mouse-over, the card must expand downward quickly but smoothly.
+
+        The '[hover to expand]' label must vanish instantly.
+
+        A thin, glowing cyan border (1px) must travel around the entire perimeter of the card upon expansion, tracing the edges continuously.
+
+        The 'Expanded Info' text must appear inside the card using a 'token stream' typewriter effect—revealing characters one-by-one rapidly, completing the sequence in roughly 250ms.
+
+3. Finalized Content:
+
+    Point 1:
+
+        Title: 'Better Search Rankings'
+
+        Subtext: 'Built to be found by your local customers.'
+
+        Expanded Info: 'We eliminate unnecessary code so your business dominates local search results, making it easy for customers to find you.'
+
+    Point 2:
+
+        Title: 'Lightning-Fast Performance'
+
+        Subtext: 'Instant loading for zero lost traffic.'
+
+        Expanded Info: 'We remove all digital dead weight so your site loads instantly on any phone, ensuring visitors stay and engage.'
+
+    Point 3:
+
+        Title: 'Designs That Actually Convert'
+
+        Subtext: 'Precision layouts designed to drive revenue.'
+
+        Expanded Info: 'We strip away distractions to turn every visitor into an actionable business lead, whether that means a phone call or a purchase.'

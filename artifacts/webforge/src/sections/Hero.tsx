@@ -175,7 +175,7 @@ export function Hero() {
           Your Business Deserves{" "}
           <span style={{ color: "#00E5FF" }}>More Leads.</span>
           <br />
-          We Build the Website That Delivers Them.
+          We Build the <span style={{ color: "#00E5FF" }}>Website</span> That Delivers Them.
         </motion.h1>
 
         {/* Subheadline */}
