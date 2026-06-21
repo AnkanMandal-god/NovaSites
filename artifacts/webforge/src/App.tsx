@@ -6,7 +6,10 @@ import { Process } from "./sections/Process";
 import { Portfolio } from "./sections/Portfolio";
 import { Pricing } from "./sections/Pricing";
 import { ConsultationForm } from "./sections/ConsultationForm";
+import { Testimonials } from "./sections/Testimonials";
 import { Feedback } from "./sections/Feedback";
+import { FAQ } from "./sections/FAQ";
+
 function App() {
   return (
     <div className="min-h-screen text-foreground flex flex-col">
@@ -19,7 +22,9 @@ function App() {
         <Portfolio />
         <Pricing />
         <ConsultationForm />
+        <Testimonials />
         <Feedback />
+        <FAQ />
       </main>
       <Footer />
     </div>
