@@ -147,23 +147,6 @@ export function Hero() {
       />
 
       <div className="relative text-center px-6 max-w-3xl mx-auto" style={{ zIndex: 10 }}>
-        {/* Pre-label */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center justify-center gap-2 mb-6"
-        >
-          <span style={{ width: 24, height: 1, background: "#00E5FF", display: "inline-block" }} />
-          <span
-            className="font-mono text-[10px] tracking-[0.3em] uppercase"
-            style={{ color: "#00E5FF" }}
-          >
-            Web Development Studio
-          </span>
-          <span style={{ width: 24, height: 1, background: "#00E5FF", display: "inline-block" }} />
-        </motion.div>
-
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
