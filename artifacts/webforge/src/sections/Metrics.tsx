@@ -395,7 +395,7 @@ export function Metrics() {
 
           {/* WebForge Engineered Site */}
           <CometCard color="#00E5FF" className="bg-card border border-primary shadow-[0_0_15px_rgba(0,229,255,0.1)] rounded-md p-8 flex flex-col items-center">
-            <h3 className="text-xl font-bold text-white mb-8">WebForge Engineered Site</h3>
+            <h3 className="text-xl font-bold text-white mb-8">NovaSites Engineered Site</h3>
             <div className="w-48 h-48 relative mb-6">
               <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                 <circle cx="50" cy="50" r="40" stroke="#2A2A2A" strokeWidth="8" fill="none" />
