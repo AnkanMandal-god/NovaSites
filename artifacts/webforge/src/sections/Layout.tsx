@@ -426,7 +426,7 @@ export function Footer() {
           High-performance digital infrastructure for local businesses.
         </p>
         <div className="font-mono text-xs text-muted-foreground/50">
-          // SYSTEM: WEBFORGE_CORE // {new Date().getFullYear()} // ALL RIGHTS RESERVED
+          // SYSTEM: NOVASITES_CORE // {new Date().getFullYear()} // ALL RIGHTS RESERVED
         </div>
       </div>
     </footer>
