@@ -193,7 +193,7 @@ function PillarCard({
 function Shield({ cardsHeight }: { cardsHeight: number }) {
   const [hov, setHov] = useState(false);
 
-  const svgH = cardsHeight > 0 ? cardsHeight : 320;
+  const svgH = (cardsHeight > 0 ? cardsHeight : 320) * 1.5;
   const svgW = svgH * (475 / 342); // viewBox cropped: 560 - 60 left - 25 right = 475
 
   return (
@@ -415,8 +415,8 @@ export function WhatWeDo() {
             ))}
           </div>
 
-          {/* Right — Shield, independently hoverable */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Right — Shield, independently hoverable, overflow visible so 1.5x size doesn't push cards */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "visible" }}>
             <Shield cardsHeight={cardsHeight} />
           </div>
         </div>
