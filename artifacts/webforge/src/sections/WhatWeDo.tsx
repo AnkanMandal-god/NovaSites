@@ -5,35 +5,32 @@ const PILLARS = [
   {
     num: "01",
     title: "Better Search Rankings",
-    subtext: "Built to be found by your local customers.",
-    expanded: "We eliminate unnecessary code so your business dominates local search results, making it easy for customers to find you.",
+    subtext: "Built to dominate local search and put your business in front of the right customers at the right time.",
+    expanded:
+      "We eliminate unnecessary code, fix crawl inefficiencies, and structure your content so search engines rank you first. Your competitors are invisible — you won't be. Every page we ship is tuned for the keywords your local customers are actually typing.",
   },
   {
     num: "02",
     title: "Lightning-Fast Performance",
-    subtext: "Instant loading for zero lost traffic.",
-    expanded: "We remove all digital dead weight so your site loads instantly on any phone, ensuring visitors stay and engage.",
+    subtext: "Sub-second load times on any device, any connection — so you never lose a visitor to a slow page.",
+    expanded:
+      "We strip out every kilobyte of dead weight: no page builders, no redundant plugins, no bloated frameworks. The result is a site that loads before your competitors have even started. Faster pages mean lower bounce rates, higher engagement, and more conversions — measurably.",
   },
   {
     num: "03",
     title: "Designs That Actually Convert",
-    subtext: "Precision layouts designed to drive revenue.",
-    expanded: "We strip away distractions to turn every visitor into an actionable business lead, whether that means a phone call or a purchase.",
+    subtext: "Precision layouts engineered around buyer psychology to turn traffic into tangible revenue.",
+    expanded:
+      "Every element — headline placement, CTA contrast, whitespace, scroll depth — is deliberate. We remove friction and visual noise so visitors move naturally toward the action you want: a call, a form fill, a purchase. Good design isn't decoration; it's architecture for revenue.",
   },
 ];
-
-/* Classic heraldic shield — curved sides, pointed bottom */
-const SHIELD_PATH =
-  "M100 12 C148 12 182 36 182 74 L182 138 C182 186 100 224 100 224 C100 224 18 186 18 138 L18 74 C18 36 52 12 100 12 Z";
 
 function PillarCard({
   pillar,
   index,
-  onHoverChange,
 }: {
   pillar: (typeof PILLARS)[0];
   index: number;
-  onHoverChange: (v: boolean) => void;
 }) {
   const [hov, setHov] = useState(false);
   const [typedText, setTypedText] = useState("");
@@ -50,7 +47,6 @@ function PillarCard({
     return () => ro.disconnect();
   }, []);
 
-  /* Typewriter — ~900ms total for a relaxed token-stream feel */
   useEffect(() => {
     if (!hov) { setTypedText(""); return; }
     let i = 0;
@@ -75,17 +71,15 @@ function PillarCard({
       transition={{ duration: 0.4, delay: index * 0.08 }}
       style={{
         position: "relative",
-        /* ── Restored card visual style ── */
         padding: hov ? "20px 22px 22px" : "20px 22px 14px",
         borderLeft: `2px solid ${hov ? "#00E5FF" : "rgba(0,229,255,0.18)"}`,
         background: hov ? "rgba(0,229,255,0.03)" : "transparent",
         transition: "padding 0.25s ease, border-color 0.22s, background 0.22s",
         cursor: "default",
       }}
-      onMouseEnter={() => { setHov(true); onHoverChange(true); }}
-      onMouseLeave={() => { setHov(false); onHoverChange(false); }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
     >
-      {/* Traveling perimeter border on hover */}
       {hov && dims.w > 0 && perimeter > 0 && (
         <svg
           style={{
@@ -114,7 +108,6 @@ function PillarCard({
       )}
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Number badge */}
         <span
           style={{
             display: "block",
@@ -130,14 +123,13 @@ function PillarCard({
           {pillar.num} ——
         </span>
 
-        {/* Title */}
         <strong
           style={{
             display: "block",
-            fontSize: 15,
+            fontSize: 17,
             fontWeight: 700,
             color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
-            marginBottom: 4,
+            marginBottom: 6,
             transition: "color 0.2s",
             letterSpacing: "0.01em",
           }}
@@ -145,17 +137,15 @@ function PillarCard({
           {pillar.title}
         </strong>
 
-        {/* Subtext (always visible) */}
-        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.5 }}>
+        <span style={{ fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.55 }}>
           {pillar.subtext}
         </span>
 
-        {/* Expanded typewriter text */}
         {hov && (
           <div
             style={{
-              fontSize: 12.5,
-              lineHeight: 1.65,
+              fontSize: 13,
+              lineHeight: 1.7,
               color: "rgba(255,255,255,0.5)",
               marginTop: 10,
               maxWidth: 400,
@@ -168,7 +158,6 @@ function PillarCard({
           </div>
         )}
 
-        {/* [hover to expand] hint */}
         {!hov && (
           <div
             style={{
@@ -184,7 +173,6 @@ function PillarCard({
         )}
       </div>
 
-      {/* Corner accent (top-right) on hover */}
       <span
         style={{
           position: "absolute",
@@ -202,93 +190,99 @@ function PillarCard({
   );
 }
 
-/* Neon heraldic shield — matches reference: curved body, strong ambient glow, dual traces */
-function Shield({ enlarged }: { enlarged: boolean }) {
+function Shield({ cardsHeight }: { cardsHeight: number }) {
+  const [hov, setHov] = useState(false);
+
+  const svgH = cardsHeight > 0 ? cardsHeight : 320;
+  const svgW = svgH * (560 / 342);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
       <motion.div
-        animate={{ scale: enlarged ? 1.28 : 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        style={{ originX: 0.5, originY: 0.5 }}
+        animate={{ scale: hov ? 1.08 : 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 22 }}
+        style={{ originX: 0.5, originY: 0.5, cursor: "default" }}
       >
         <svg
-          width="220"
-          height="240"
-          viewBox="0 0 200 236"
-          fill="none"
+          width={svgW}
+          height={svgH}
+          viewBox="0 0 560 342"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Outer diffuse glow (largest, dimmest) */}
+          <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="b1"/>
+              <feGaussianBlur stdDeviation="9" result="b2"/>
+              <feMerge>
+                <feMergeNode in="b2"/>
+                <feMergeNode in="b1"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <filter id="glowDim" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="b1"/>
+              <feMerge>
+                <feMergeNode in="b1"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <style>{`
+            .pulse {
+              animation: dashmove 2s linear infinite;
+            }
+            @keyframes dashmove {
+              from { stroke-dashoffset: 563; }
+              to   { stroke-dashoffset: 0; }
+            }
+          `}</style>
+
+          {/* background matches page bg #080808 */}
+          <rect width="560" height="342" fill="#080808"/>
+
+          {/* static shield outline */}
           <path
-            d={SHIELD_PATH}
+            d="M 276 78
+               C 255 95, 230 100, 205 110
+               L 205 210
+               C 205 245, 235 262, 276 274
+               C 317 262, 347 245, 347 210
+               L 347 110
+               C 322 100, 297 95, 276 78
+               Z"
             fill="none"
-            stroke="rgba(0,229,255,0.06)"
-            strokeWidth={28}
-            strokeLinejoin="round"
-            style={{ filter: "blur(14px)" }}
+            stroke="#3a9bc7"
+            strokeWidth="2.5"
+            opacity="0.85"
+            filter="url(#glowDim)"
           />
 
-          {/* Mid ambient glow */}
+          {/* traveling pulse */}
           <path
-            d={SHIELD_PATH}
+            className="pulse"
+            d="M 276 78
+               C 255 95, 230 100, 205 110
+               L 205 210
+               C 205 245, 235 262, 276 274
+               C 317 262, 347 245, 347 210
+               L 347 110
+               C 322 100, 297 95, 276 78
+               Z"
             fill="none"
-            stroke="rgba(0,229,255,0.14)"
-            strokeWidth={14}
-            strokeLinejoin="round"
-            style={{ filter: "blur(6px)" }}
-          />
-
-          {/* Inner fill — very dark so shield "body" feels deep */}
-          <path
-            d={SHIELD_PATH}
-            fill="rgba(0,10,20,0.7)"
-          />
-
-          {/* Static base outline */}
-          <path
-            d={SHIELD_PATH}
-            fill="none"
-            stroke="rgba(0,229,255,0.22)"
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-
-          {/* Clockwise bright trace */}
-          <motion.path
-            d={SHIELD_PATH}
-            fill="none"
-            stroke="#00E5FF"
-            strokeWidth={2}
+            stroke="#7fe0ff"
+            strokeWidth="3"
             strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength={1}
-            strokeDasharray="0.18 0.82"
-            animate={{ strokeDashoffset: [0, -1] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
-            style={{
-              filter:
-                "drop-shadow(0 0 6px #00E5FF) drop-shadow(0 0 12px rgba(0,229,255,0.7))",
-            }}
-          />
-
-          {/* Counter-clockwise dimmer trace */}
-          <motion.path
-            d={SHIELD_PATH}
-            fill="none"
-            stroke="rgba(0,229,255,0.55)"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength={1}
-            strokeDasharray="0.12 0.88"
-            animate={{ strokeDashoffset: [0, 1] }}
-            transition={{ duration: 4.2, repeat: Infinity, ease: "linear" }}
-            style={{ filter: "drop-shadow(0 0 4px rgba(0,229,255,0.5))" }}
+            filter="url(#glow)"
+            strokeDasharray="120 443"
           />
         </svg>
       </motion.div>
 
-      {/* Metadata — white, legible */}
       <motion.p
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -313,7 +307,16 @@ function Shield({ enlarged }: { enlarged: boolean }) {
 }
 
 export function WhatWeDo() {
-  const [anyHovered, setAnyHovered] = useState(false);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const [cardsHeight, setCardsHeight] = useState(0);
+
+  useEffect(() => {
+    const el = cardsRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setCardsHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   return (
     <section
@@ -340,46 +343,47 @@ export function WhatWeDo() {
           flexDirection: "column",
         }}
       >
-        {/* Label */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex items-center gap-3"
-          style={{ paddingTop: 36, marginBottom: 8 }}
-        >
-          <span style={{ width: 16, height: 1, background: "#00E5FF", display: "inline-block" }} />
-          <span
+        {/* Label + Headline — constrained to left half */}
+        <div style={{ maxWidth: "50%", paddingTop: 36, marginBottom: 8 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex items-center gap-3"
+            style={{ marginBottom: 8 }}
+          >
+            <span style={{ width: 16, height: 1, background: "#00E5FF", display: "inline-block" }} />
+            <span
+              style={{
+                fontFamily: "monospace",
+                fontSize: 10,
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "#00E5FF",
+              }}
+            >
+              Core Architecture
+            </span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.04 }}
             style={{
-              fontFamily: "monospace",
-              fontSize: 10,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "#00E5FF",
+              fontSize: "clamp(2.4rem, 4.5vw, 3.6rem)",
+              fontWeight: 900,
+              letterSpacing: "-0.01em",
+              color: "#fff",
+              marginBottom: 0,
+              lineHeight: 1.15,
             }}
           >
-            Core Architecture
-          </span>
-        </motion.div>
-
-        {/* Headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.04 }}
-          style={{
-            fontSize: "clamp(1.6rem, 3vw, 2.4rem)",
-            fontWeight: 900,
-            letterSpacing: "-0.01em",
-            color: "#fff",
-            marginBottom: 0,
-            lineHeight: 1.15,
-          }}
-        >
-          Built for Growth.{" "}
-          <span style={{ color: "#00E5FF" }}>Engineered to Last.</span>
-        </motion.h2>
+            Built for Growth.{" "}
+            <span style={{ color: "#00E5FF" }}>Engineered to Last.</span>
+          </motion.h2>
+        </div>
 
         {/* Content grid */}
         <div
@@ -393,21 +397,28 @@ export function WhatWeDo() {
             paddingBottom: 32,
           }}
         >
-          {/* Left — Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {/* Left — Cards shifted 10px left */}
+          <div
+            ref={cardsRef}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              transform: "translateX(-10px)",
+            }}
+          >
             {PILLARS.map((p, i) => (
               <PillarCard
                 key={p.num}
                 pillar={p}
                 index={i}
-                onHoverChange={(v) => setAnyHovered(v)}
               />
             ))}
           </div>
 
-          {/* Right — Shield */}
+          {/* Right — Shield, independently hoverable */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Shield enlarged={anyHovered} />
+            <Shield cardsHeight={cardsHeight} />
           </div>
         </div>
       </div>
