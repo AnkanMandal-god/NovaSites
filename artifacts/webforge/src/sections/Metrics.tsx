@@ -429,9 +429,7 @@ export function Metrics() {
 
         {/* Source attribution */}
         <p className="text-center mb-16 max-w-2xl mx-auto"
-          style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-          Source: Google PageSpeed Insights, tested on 50 average small-business template sites vs. WebForge builds, June 2026.
-        </p>
+          style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>Source: Google PageSpeed Insights, tested on 50 average small-business template sites vs. NovaSites builds, June 2026.</p>
 
         {/* Animated feature grid */}
         <FeatureGrid />
