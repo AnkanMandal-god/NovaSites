@@ -5,23 +5,54 @@ const PILLARS = [
   {
     num: "01",
     title: "Better Search Rankings",
-    subtext: "Built to be found first by the customers you actually want.",
+    subtext: "Built to be found first by the customers you actually want — before your competitors even show up.",
     expanded:
       "We eliminate unnecessary code, fix crawl inefficiencies, and structure your content so search engines rank you first. Every page we ship is tuned for the exact keywords your local customers are typing.",
+    icon: (
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="42" cy="42" r="26" stroke="white" strokeWidth="7" strokeLinecap="round"/>
+        <line x1="61" y1="61" x2="84" y2="84" stroke="white" strokeWidth="7" strokeLinecap="round"/>
+        <line x1="34" y1="42" x2="50" y2="42" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+        <line x1="42" y1="34" x2="42" y2="50" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
   {
     num: "02",
     title: "Lightning-Fast Performance",
-    subtext: "Sub-second load times on any device — zero lost visitors.",
+    subtext: "Sub-second load times on any device, any connection — so you never lose a visitor to a slow page.",
     expanded:
       "We strip every kilobyte of dead weight: no page builders, no redundant plugins, no bloated frameworks. Faster pages mean lower bounce rates, higher engagement, and more conversions — measurably.",
+    icon: (
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polyline
+          points="58,8 28,52 50,52 42,92 72,48 50,48 58,8"
+          stroke="white"
+          strokeWidth="6"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+    ),
   },
   {
     num: "03",
     title: "Designs That Actually Convert",
-    subtext: "Precision layouts engineered to turn traffic into revenue.",
+    subtext: "Precision layouts engineered around real buyer behaviour to turn every visit into measurable revenue.",
     expanded:
       "Every element — headline placement, CTA contrast, whitespace, scroll depth — is deliberate. We remove friction so visitors move naturally toward the action you want: a call, a form fill, a purchase.",
+    icon: (
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="36" stroke="white" strokeWidth="6"/>
+        <circle cx="50" cy="50" r="22" stroke="white" strokeWidth="5"/>
+        <circle cx="50" cy="50" r="8" stroke="white" strokeWidth="5"/>
+        <line x1="50" y1="8" x2="50" y2="20" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+        <line x1="50" y1="80" x2="50" y2="92" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+        <line x1="8" y1="50" x2="20" y2="50" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+        <line x1="80" y1="50" x2="92" y2="50" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+      </svg>
+    ),
   },
 ];
 
@@ -78,10 +109,29 @@ function PillarCard({
         transition: "padding 0.25s ease, border-color 0.22s, background 0.22s",
         cursor: "default",
         minWidth: 0,
+        overflow: "hidden",
       }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
+      {/* Faint static background icon — fixed position, never moves */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: -10,
+          right: -10,
+          width: 110,
+          height: 110,
+          opacity: 0.045,
+          pointerEvents: "none",
+          zIndex: 0,
+          flexShrink: 0,
+        }}
+      >
+        {pillar.icon}
+      </div>
+
+      {/* Traveling perimeter border on hover */}
       {hov && dims.w > 0 && perimeter > 0 && (
         <svg
           style={{
@@ -91,7 +141,7 @@ function PillarCard({
             height: dims.h,
             pointerEvents: "none",
             overflow: "visible",
-            zIndex: 0,
+            zIndex: 1,
           }}
         >
           <motion.rect
@@ -109,7 +159,7 @@ function PillarCard({
         </svg>
       )}
 
-      <div style={{ position: "relative", zIndex: 1 }}>
+      <div style={{ position: "relative", zIndex: 2 }}>
         <span
           style={{
             display: "block",
@@ -128,19 +178,19 @@ function PillarCard({
         <strong
           style={{
             display: "block",
-            fontSize: 15,
+            fontSize: 18,
             fontWeight: 700,
             color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
-            marginBottom: 8,
+            marginBottom: 10,
             transition: "color 0.2s",
             letterSpacing: "0.01em",
-            lineHeight: 1.3,
+            lineHeight: 1.25,
           }}
         >
           {pillar.title}
         </strong>
 
-        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.55, display: "block" }}>
+        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, display: "block" }}>
           {pillar.subtext}
         </span>
 
@@ -186,6 +236,7 @@ function PillarCard({
           borderRight: "1.5px solid #00E5FF",
           opacity: hov ? 0.75 : 0,
           transition: "opacity 0.2s",
+          zIndex: 2,
         }}
       />
     </motion.div>
