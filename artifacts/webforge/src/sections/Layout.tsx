@@ -421,9 +421,7 @@ export function Footer() {
   return (
     <footer className="bg-background py-12 border-t border-border text-center">
       <div className="container mx-auto px-6">
-        <div className="text-2xl font-bold tracking-widest text-white mb-2">
-          WEBFORGE
-        </div>
+        <div className="text-2xl font-bold tracking-widest text-white mb-2">NOVASITES</div>
         <p className="text-muted-foreground text-sm mb-8">
           High-performance digital infrastructure for local businesses.
         </p>
