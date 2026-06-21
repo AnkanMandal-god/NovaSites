@@ -329,7 +329,7 @@ export function WhatWeDo() {
         display: "flex",
         flexDirection: "column",
         padding: "0 48px",
-        paddingTop: 60,
+        paddingTop: 40,
         boxSizing: "border-box",
       }}
     >
@@ -344,13 +344,13 @@ export function WhatWeDo() {
         }}
       >
         {/* Label + Headline — constrained to left half */}
-        <div style={{ maxWidth: "50%", paddingTop: 36, marginBottom: 8 }}>
+        <div style={{ maxWidth: "48%", paddingTop: 20, marginBottom: 6 }}>
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex items-center gap-3"
-            style={{ marginBottom: 8 }}
+            style={{ marginBottom: 6 }}
           >
             <span style={{ width: 16, height: 1, background: "#00E5FF", display: "inline-block" }} />
             <span
@@ -372,15 +372,16 @@ export function WhatWeDo() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.04 }}
             style={{
-              fontSize: "clamp(2.4rem, 4.5vw, 3.6rem)",
+              fontSize: "clamp(1.55rem, 2.4vw, 2.1rem)",
               fontWeight: 900,
               letterSpacing: "-0.01em",
               color: "#fff",
               marginBottom: 0,
-              lineHeight: 1.15,
+              lineHeight: 1.18,
             }}
           >
             Built for Growth.{" "}
+            <br />
             <span style={{ color: "#00E5FF" }}>Engineered to Last.</span>
           </motion.h2>
         </div>
@@ -391,10 +392,10 @@ export function WhatWeDo() {
             flex: 1,
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 56,
+            gap: 40,
             alignItems: "center",
             minHeight: 0,
-            paddingBottom: 32,
+            paddingBottom: 20,
           }}
         >
           {/* Left — Cards shifted 10px left */}
