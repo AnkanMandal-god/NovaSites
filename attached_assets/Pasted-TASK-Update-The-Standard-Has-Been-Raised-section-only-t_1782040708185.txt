@@ -1,0 +1,212 @@
+TASK: Update "The Standard Has Been Raised" section only — the two 
+speedometer comparison cards, their line graphs, and the 8-item feature 
+grid below them. Do not modify any other section, route, or component. 
+Do not change the hero, the "Built for Growth" section above this one, 
+the "Operational Overview" section below it, or anything in global 
+styles/theme files beyond what's explicitly listed here.
+
+Before writing any code, list out exactly which files/components you 
+intend to edit and wait for my confirmation.
+
+═══════════════════════════════════════════
+PART 1 — SPEEDOMETER / SCORE RINGS
+═══════════════════════════════════════════
+Applies to both cards ("Average Template Site" = red, "WebForge 
+Engineered Site" = cyan).
+
+1. Remove the "%" symbol after the score numbers.
+   "24%" → "24"   "99%" → "99"
+   Keep existing font size, weight, and color exactly as is.
+
+2. Add a new small label near the score number (reuse the existing font 
+   style used for "FAILING"/"EXCELLENT" — same family/weight, smaller 
+   size, muted color):
+   Both cards: "GOOGLE PAGESPEED SCORE"
+
+3. Keep "FAILING" and "EXCELLENT" exactly as-is — do not remove, 
+   reword, or restyle these.
+
+4. Add one new line of small gray/muted text centered BELOW both cards 
+   (not inside either card — sits under the two-column row as its own 
+   element):
+   "Source: Google PageSpeed Insights, tested on 50 average 
+   small-business template sites vs. WebForge builds, June 2026."
+   Font size must be smaller than the existing caption text 
+   (e.g. "Stagnant user retention..."). Use the design system's 
+   existing secondary/muted text color token — do not introduce a new 
+   color value.
+
+5. Do not change ring size, stroke width, ring colors, the ring fill 
+   animation/easing, or card border colors/width.
+
+═══════════════════════════════════════════
+PART 2 — LINE GRAPHS
+═══════════════════════════════════════════
+Applies to the line chart inside both cards, below the rings.
+
+1. Add a small label above each chart (uppercase, small, muted — match 
+   any existing eyebrow/label style in the design system if one exists):
+   Both cards: "VISITOR RETENTION"
+
+2. Add Y-axis labels: "100%" at the top of the chart area, "0%" at the 
+   bottom. No gridlines needed — just these two text labels.
+
+3. Add X-axis tick labels along the bottom: "0", "10", "20", "30", "40", 
+   "50", "60s" — evenly spaced under the chart.
+
+4. Change the SHAPE of the plotted line data only (do not change line 
+   color, stroke width, glow/shadow effect, or entrance animation 
+   timing/easing — only the data points change):
+   - Red line (left/"Average Template Site" card): drop sharply within 
+     the first 10–15 seconds of the X-axis, then stay low and 
+     relatively flat for the remainder.
+   - Cyan line (right/"WebForge Engineered Site" card): stay high and 
+     relatively flat across the entire 0–60s range, only minor 
+     variation, no sharp drop.
+
+5. Do not alter the existing chart entrance/draw-in animation behavior 
+   — only the underlying data shape and the new labels should change.
+
+═══════════════════════════════════════════
+PART 3 — NEW 8-ITEM FEATURE GRID (replaces current 8-card grid)
+═══════════════════════════════════════════
+This replaces the current static icon-card grid below the comparison 
+cards. New version is a 4-row × 2-column grid (8 cards total, 2 per 
+row) with a terminal-style sequential print-on-scroll animation.
+
+CONTENT — use exactly this copy and icon mapping (Tabler outline icon 
+set, NOT emoji, NOT filled icons). Subtitles are intentionally longer, 
+full-sentence-style lines — do not shorten or summarize them further:
+
+Row 1:
+  - Icon: bolt          | Title: "Sub-Second Loading"            | Subtitle: "Pages render in under 1 second, on any connection"
+  - Icon: search         | Title: "Search Engine Optimization"     | Subtitle: "Built-in structure that ranks without paid plugins"
+Row 2:
+  - Icon: device-mobile  | Title: "Mobile-First Responsiveness"    | Subtitle: "Layouts adapt natively to every screen size"
+  - Icon: key            | Title: "Absolute Asset Ownership"       | Subtitle: "You own the code outright, no recurring lease fees"
+Row 3:
+  - Icon: shield-check   | Title: "Enhanced Security"               | Subtitle: "Locked-down architecture with no plugin attack surface"
+  - Icon: tool           | Title: "Maintenance-Free Stability"      | Subtitle: "Hand-coded builds with nothing to break or update"
+Row 4:
+  - Icon: target-arrow   | Title: "Conversion-Focused Architecture" | Subtitle: "Every layout decision is built to turn visitors into leads"
+  - Icon: trending-up    | Title: "Scalable Framework"               | Subtitle: "Add pages and features without a teardown rebuild"
+
+Since subtitles are now longer, ensure card height/layout accommodates 
+2-line wrapping on the subtitle without breaking card alignment within 
+a row — both cards in a row should remain equal height even if one 
+subtitle wraps to 2 lines and the other doesn't (use consistent 
+min-height or flex alignment, not fixed height that clips text).
+
+INTRODUCER LINE — add directly above the grid as ONE single inline 
+line of text, not a separate heading block. It must visually read as 
+a small caption/eyebrow sitting just above the cards — NOT as a new 
+section title, and must not introduce a new vertical section break, 
+extra top margin/padding, or divider line. Reuse this site's existing 
+"// " eyebrow text style exactly (same font size, weight, color, and 
+spacing as other "// " labels on the page) — do not create a new 
+headline element or larger heading below it:
+
+  "// Every deployment ships with this. No exceptions."
+
+Do not add a second, larger headline beneath it. This is the only line 
+of intro text for the grid.
+
+TYPOGRAPHY — all text inside the 8 cards (titles, subtitles, and the 
+typewriter "> initializing..." / "> 8/8 loaded" lines) must use a 
+mechanical/monospace font — e.g. the site's existing monospace font if 
+one is already defined in the codebase (check for one before adding a 
+new font import), otherwise a system monospace stack such as 
+"JetBrains Mono", "IBM Plex Mono", or "Consolas", ui-monospace, 
+monospace. This font must be scoped ONLY to this card grid section 
+(including the introducer line above it) — do not change the font 
+anywhere else on the page.
+
+CARD SHAPE:
+  Keep cards visually simple/restrained — a clean bordered card (reuse 
+  existing card border/background tokens from the speedometer cards 
+  above, e.g. same border width and corner radius), since the 
+  animation is the primary visual interest, not the card silhouette. 
+  Do not add heavy decorative shapes, drop shadows, or gradients.
+
+ANIMATION SEQUENCE (triggers once when grid scrolls into viewport — 
+use an IntersectionObserver or equivalent, fire once, do not re-trigger 
+on repeated scroll in/out):
+
+  1. Print "> initializing..." alone, in the monospace font defined 
+     above, terminal-green or site's existing cyan accent color. 
+     Brief pause after fully printed (~400-600ms).
+
+  2. Row 1 begins: BOTH cards in the row animate simultaneously.
+     - In each card, the title text types out character-by-character 
+       (typewriter effect), each with its own blinking cursor 
+       trailing the text as it types.
+     - If one card's title finishes typing before the other, its 
+       cursor stops advancing and simply idle-blinks in place at the 
+       end of its text — it must WAIT for the slower card in the same 
+       row, not proceed to the subtitle early.
+     - Once BOTH cards' titles are fully typed, both pause briefly 
+       (~150-200ms), then both subtitles begin typing simultaneously 
+       (subtitles are now longer — budget more time for this step), 
+       same idle-blink-and-wait rule applies if one finishes first.
+     - Once BOTH cards' subtitles are fully typed and both have 
+       caught up, the icon fades/pops in on the right side of EACH 
+       card AT THE SAME TIME (synchronized, not staggered).
+     - Both cursors disappear once their card's icon has appeared.
+
+  3. Row 2 begins immediately after Row 1 fully completes (both icons 
+     landed). Repeat the exact same simultaneous-pair behavior as Row 1.
+
+  4. Row 3, then Row 4, repeat identically in sequence.
+
+  5. After Row 4's icons appear and both cursors vanish, print one 
+     final centered line below the grid: "> 8/8 loaded" 
+     (same monospace/terminal styling as "> initializing..." in step 1).
+
+  6. Nothing in this sequence should auto-repeat or re-trigger if the 
+     user scrolls away and back — it should only ever play once per 
+     page load.
+
+  7. With longer subtitle text, total animation time across all 4 rows 
+     will increase — keep per-character typing speed brisk (do not 
+     slow down per-character timing just because text is longer) so 
+     the full sequence does not feel sluggish.
+
+═══════════════════════════════════════════
+HARD CONSTRAINTS — must not break
+═══════════════════════════════════════════
+- Do not change the page's responsive/mobile layout. After all changes, 
+  verify both speedometer cards still stack correctly on small screens, 
+  and the 4×2 grid degrades to a sensible mobile layout (e.g. 1 column) 
+  without breaking the row-pair animation logic — if needed, simplify 
+  the animation to play card-by-card (not pair-by-pair) on mobile 
+  viewports rather than breaking the layout.
+- With longer subtitles, double-check mobile card width does not force 
+  awkward text wrapping (e.g. orphaned single words on their own line) 
+  — adjust card padding/line-height if needed, but do not shrink font 
+  below 11px to force-fit text.
+- Do not change existing color tokens (red/cyan values, background 
+  colors, border colors) used elsewhere on the site — reuse them, 
+  don't redefine or hardcode new hex values.
+- Do not change the hero text, eyebrow text ("THE DIFFERENCE WE MAKE"), 
+  or subheading above the speedometer cards.
+- Do not change speedometer card border colors, border width, padding, 
+  or border-radius.
+- Do not alter the small arrow/connector graphic between the two 
+  speedometer cards.
+- Do not change anything in the "Built for Growth" section above or 
+  the "Operational Overview" section below this one.
+- The new monospace font from Part 3 must be scoped only to the new 
+  grid section (including its single-line introducer) — do not change 
+  the global font-family or apply monospace anywhere else on the page.
+- The IntersectionObserver (or equivalent) used for the scroll-trigger 
+  animation must be cleaned up / disconnected appropriately to avoid 
+  memory leaks or duplicate triggers on re-render.
+- After changes, the section must render with no console errors, no 
+  layout shift to elements outside this section, and no broken 
+  animation state if the user scrolls quickly past the section before 
+  it finishes playing (animation should either complete gracefully in 
+  the background or gracefully skip to the final "8/8 loaded" state — 
+  it must not leave cards stuck mid-type).
+- Test that reloading the page and scrolling back up/down multiple 
+  times does not cause the typewriter animation to stack, duplicate 
+  text, or break.
