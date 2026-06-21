@@ -1,0 +1,166 @@
+TASK: Fix issues in the already-implemented "The Standard Has Been 
+Raised" section (speedometer cards, line graphs, and 8-item feature 
+grid). This is a bug-fix/refinement pass on existing code — do not 
+rebuild from scratch, do not touch any other section of the page.
+
+Before writing any code, list out exactly which files/components you 
+intend to edit and wait for my confirmation.
+
+═══════════════════════════════════════════
+BUG 1 — Feature grid cards have no visible card container
+═══════════════════════════════════════════
+The 8 items (Sub-Second Loading, Search Engine Optimization, etc.) are 
+currently rendering as bare text + icon with no surrounding card — no 
+background, no border. This was supposed to be a bordered card 
+matching the speedometer cards above.
+
+FIX:
+- Each of the 8 items must be wrapped in a visible card: background 
+  color and border matching the existing speedometer card tokens 
+  (same border width/color style used on the "Average Template Site" 
+  / "WebForge Engineered Site" cards — reuse those exact tokens, do 
+  not invent new ones).
+- Apply consistent padding inside each card (e.g. 20-24px) so text 
+  and icon aren't flush against the card edges.
+- Cards in the same row must be equal height regardless of subtitle 
+  line-wrap differences (use flex/grid alignment, not fixed height).
+
+═══════════════════════════════════════════
+BUG 2 — Icons not vertically centered in their card
+═══════════════════════════════════════════
+Icons are currently sitting below the title/subtitle text, left-aligned 
+under the text block, instead of being positioned beside the text and 
+vertically centered within the card.
+
+FIX:
+- Restructure each card to a horizontal flex layout: text block 
+  (title + subtitle, stacked) on the left, icon on the right.
+- The icon must be vertically centered relative to the FULL HEIGHT of 
+  the card (use `align-items: center` on the flex container), not 
+  aligned to the top or bottom.
+- Icon size should be visually balanced against the two-line text 
+  block next to it (roughly 24-28px) — not so small it disappears, 
+  not so large it dominates the card.
+
+═══════════════════════════════════════════
+BUG 3 — Font sizes too small throughout the grid section
+═══════════════════════════════════════════
+FIX:
+- Increase card title font size by roughly 2px from current.
+- Increase card subtitle font size by roughly 1-2px from current — it 
+  must remain clearly legible at normal viewing distance, not feel 
+  like fine print.
+- Increase the "// Every deployment ships with this. No exceptions." 
+  eyebrow line and the "> initializing..." / "> 8/8 loaded" terminal 
+  lines by 1-2px as well — they currently read as too small relative 
+  to the rest of the page's type scale.
+- Do not change font sizes anywhere outside this grid section.
+
+═══════════════════════════════════════════
+BUG 4 — Typewriter print animation is too slow
+═══════════════════════════════════════════
+FIX:
+- Reduce the per-character typing delay significantly (roughly 
+  2-3x faster than current implementation) for both titles and 
+  subtitles.
+- Reduce the pause duration between title finishing and subtitle 
+  starting (keep it brief, just enough to read as two separate lines 
+  — not a long dead pause).
+- Reduce the pause after "> initializing..." finishes before Row 1 
+  begins.
+- Goal: the full 4-row sequence should complete noticeably faster than 
+  the current build while still being readable as a typewriter effect, 
+  not an instant flash.
+
+═══════════════════════════════════════════
+BUG 5 — Leftover connector arrow overlapping Row 1
+═══════════════════════════════════════════
+There is a small chevron/arrow graphic (originally the connector 
+between the two speedometer cards above) currently rendering on top of 
+/ overlapping the "Search Engine Optimization" card text in Row 1. 
+This is a layout/z-index leftover and must be fixed.
+
+FIX:
+- Locate this connector arrow element and correct its positioning so 
+  it stays attached to the speedometer cards section ONLY and does 
+  not overlap or bleed into the feature grid below.
+- Verify no other stray/leftover elements from the speedometer section 
+  are bleeding into the grid section after this fix.
+
+═══════════════════════════════════════════
+BUG 6 — Remove emoji from line graph captions
+═══════════════════════════════════════════
+The captions below each line graph ("Stagnant user retention due to 
+delayed page rendering." and "Sub-second loading speeds resulting in 
+higher inbound call volume.") currently have a leading emoji icon 
+(envelope/checkmark) before the text.
+
+FIX:
+- Remove the emoji character from both caption lines entirely.
+- Leave the text content of both captions unchanged.
+- If a leading icon is still desired there for visual balance, it must 
+  be a proper Tabler outline icon (not emoji) — but default to simply 
+  removing it unless a replacement is explicitly requested.
+
+═══════════════════════════════════════════
+NEW FEATURE — Comet/line animation along the perimeter of both 
+speedometer+graph cards
+═══════════════════════════════════════════
+Add a continuous animated "comet" effect that travels along the border 
+perimeter of each of the two large cards (the "Average Template Site" 
+card and the "WebForge Engineered Site" card) — a short bright segment 
+of light that runs along the border path, like a moving highlight 
+chasing around the card's edge, fading at both ends (comet tail), 
+looping continuously.
+
+SPECIFICATION:
+- Left card ("Average Template Site"): comet color = the site's 
+  existing red accent color (same red used for the ring/line graph in 
+  that card).
+- Right card ("WebForge Engineered Site"): comet color = the site's 
+  existing cyan accent color (same cyan used for the ring/line graph 
+  in that card).
+- The comet should travel along the full rectangular border path of 
+  the card (perimeter loop), continuously, at a slow-to-moderate speed 
+  — not fast enough to be distracting, slow enough to read as ambient 
+  motion.
+- Implementation approach: prefer an SVG rect/path with `stroke-dasharray` 
+  and animated `stroke-dashoffset` (or equivalent CSS animation on a 
+  pseudo-element border) to create the moving short-segment-with-fade 
+  effect, rather than animating the entire border color/glow uniformly.
+- This animation must run continuously/infinitely once the section is 
+  visible — it is NOT a one-time scroll-triggered effect like the 
+  typewriter grid below it.
+- Must not affect the existing static border (the always-visible red/
+  cyan border outline should remain as-is) — the comet is an additional 
+  moving highlight layered on top of/along that existing border, not a 
+  replacement for it.
+- Must be performant — use CSS/SVG animation (GPU-friendly transforms/
+  stroke animation), not JS-driven position recalculation on every 
+  frame, to avoid jank.
+
+═══════════════════════════════════════════
+HARD CONSTRAINTS — must not break
+═══════════════════════════════════════════
+- Do not change the page's responsive/mobile layout — verify cards 
+  still stack correctly and the comet animation still renders sensibly 
+  (or gracefully simplifies) on small screens.
+- Do not change existing color tokens — reuse the same red/cyan values 
+  already used in this section for the new comet animation, don't 
+  introduce new hex values.
+- Do not change the speedometer ring behavior, the line graph axis 
+  labels, the "GOOGLE PAGESPEED SCORE" labels, or the source citation 
+  line below the cards — those are correctly implemented and must 
+  remain untouched.
+- Do not change anything in the "Built for Growth" section above or 
+  the "Operational Overview" section below this one.
+- Do not reintroduce emoji anywhere in this section while fixing 
+  other bugs.
+- After changes, the section must render with no console errors, no 
+  layout shift to elements outside this section, and the comet 
+  animation must not cause visible jank or dropped frames when 
+  scrolling.
+- Test at normal and fast scroll speed to confirm the typewriter grid 
+  animation (now faster per Bug 4) still completes cleanly without 
+  getting stuck mid-character, and that the connector arrow fix (Bug 5) 
+  holds at multiple viewport widths.
