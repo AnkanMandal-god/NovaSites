@@ -5,23 +5,23 @@ const PILLARS = [
   {
     num: "01",
     title: "Better Search Rankings",
-    subtext: "Built to dominate local search and put your business in front of the right customers at the right time.",
+    subtext: "Built to be found first by the customers you actually want.",
     expanded:
-      "We eliminate unnecessary code, fix crawl inefficiencies, and structure your content so search engines rank you first. Your competitors are invisible — you won't be. Every page we ship is tuned for the keywords your local customers are actually typing.",
+      "We eliminate unnecessary code, fix crawl inefficiencies, and structure your content so search engines rank you first. Every page we ship is tuned for the exact keywords your local customers are typing.",
   },
   {
     num: "02",
     title: "Lightning-Fast Performance",
-    subtext: "Sub-second load times on any device, any connection — so you never lose a visitor to a slow page.",
+    subtext: "Sub-second load times on any device — zero lost visitors.",
     expanded:
-      "We strip out every kilobyte of dead weight: no page builders, no redundant plugins, no bloated frameworks. The result is a site that loads before your competitors have even started. Faster pages mean lower bounce rates, higher engagement, and more conversions — measurably.",
+      "We strip every kilobyte of dead weight: no page builders, no redundant plugins, no bloated frameworks. Faster pages mean lower bounce rates, higher engagement, and more conversions — measurably.",
   },
   {
     num: "03",
     title: "Designs That Actually Convert",
-    subtext: "Precision layouts engineered around buyer psychology to turn traffic into tangible revenue.",
+    subtext: "Precision layouts engineered to turn traffic into revenue.",
     expanded:
-      "Every element — headline placement, CTA contrast, whitespace, scroll depth — is deliberate. We remove friction and visual noise so visitors move naturally toward the action you want: a call, a form fill, a purchase. Good design isn't decoration; it's architecture for revenue.",
+      "Every element — headline placement, CTA contrast, whitespace, scroll depth — is deliberate. We remove friction so visitors move naturally toward the action you want: a call, a form fill, a purchase.",
   },
 ];
 
@@ -71,7 +71,7 @@ function PillarCard({
       transition={{ duration: 0.4, delay: index * 0.08 }}
       style={{
         position: "relative",
-        padding: hov ? "20px 22px 22px" : "20px 22px 14px",
+        padding: hov ? "10px 16px 12px" : "10px 16px 8px",
         borderLeft: `2px solid ${hov ? "#00E5FF" : "rgba(0,229,255,0.18)"}`,
         background: hov ? "rgba(0,229,255,0.03)" : "transparent",
         transition: "padding 0.25s ease, border-color 0.22s, background 0.22s",
@@ -117,7 +117,7 @@ function PillarCard({
             letterSpacing: "0.2em",
             color: hov ? "#00E5FF" : "rgba(0,229,255,0.4)",
             transition: "color 0.22s",
-            marginBottom: 6,
+            marginBottom: 3,
           }}
         >
           {pillar.num} ——
@@ -126,10 +126,10 @@ function PillarCard({
         <strong
           style={{
             display: "block",
-            fontSize: 17,
+            fontSize: 15,
             fontWeight: 700,
             color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
-            marginBottom: 6,
+            marginBottom: 4,
             transition: "color 0.2s",
             letterSpacing: "0.01em",
           }}
@@ -137,7 +137,7 @@ function PillarCard({
           {pillar.title}
         </strong>
 
-        <span style={{ fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.55 }}>
+        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.5 }}>
           {pillar.subtext}
         </span>
 
@@ -322,14 +322,12 @@ export function WhatWeDo() {
     <section
       id="what-we-do"
       style={{
-        height: "100vh",
-        overflow: "hidden",
+        minHeight: "100vh",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         background: "rgba(8,8,8,0.99)",
         display: "flex",
         flexDirection: "column",
-        padding: "0 48px",
-        paddingTop: 40,
+        padding: "28px 48px 60px",
         boxSizing: "border-box",
       }}
     >
@@ -344,13 +342,13 @@ export function WhatWeDo() {
         }}
       >
         {/* Label + Headline — constrained to left half */}
-        <div style={{ maxWidth: "48%", paddingTop: 20, marginBottom: 6 }}>
+        <div style={{ maxWidth: "48%", paddingTop: 10, marginBottom: 4 }}>
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex items-center gap-3"
-            style={{ marginBottom: 6 }}
+            style={{ marginBottom: 5 }}
           >
             <span style={{ width: 16, height: 1, background: "#00E5FF", display: "inline-block" }} />
             <span
@@ -395,7 +393,7 @@ export function WhatWeDo() {
             gap: 40,
             alignItems: "center",
             minHeight: 0,
-            paddingBottom: 20,
+            paddingBottom: 12,
           }}
         >
           {/* Left — Cards shifted 10px left */}
