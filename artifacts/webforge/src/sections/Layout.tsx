@@ -280,9 +280,7 @@ export function Navbar() {
               <span className="font-mono font-bold" style={{ color: "#00E5FF", fontSize: 14 }}>
                 //
               </span>
-              <span className="font-bold text-white" style={{ fontSize: 20, letterSpacing: "0.22em" }}>
-                WEBFORGE
-              </span>
+              <span className="font-bold text-white" style={{ fontSize: 20, letterSpacing: "0.22em" }}>NOVASITES</span>
               <Cursor />
             </a>
 
@@ -326,7 +324,6 @@ export function Navbar() {
 
         <ScanLine />
       </motion.div>
-
       {/* ── Trapezoid arrow tab — hangs from top when scrolled, hides when nav open ── */}
       <AnimatePresence>
         {scrolled && !navOpen && (
