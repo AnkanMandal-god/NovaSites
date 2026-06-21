@@ -194,7 +194,7 @@ function Shield({ cardsHeight }: { cardsHeight: number }) {
   const [hov, setHov] = useState(false);
 
   const svgH = cardsHeight > 0 ? cardsHeight : 320;
-  const svgW = svgH * (560 / 342);
+  const svgW = svgH * (475 / 342); // viewBox cropped: 560 - 60 left - 25 right = 475
 
   return (
     <div
@@ -210,7 +210,7 @@ function Shield({ cardsHeight }: { cardsHeight: number }) {
         <svg
           width={svgW}
           height={svgH}
-          viewBox="0 0 560 342"
+          viewBox="60 0 475 342"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
