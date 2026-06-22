@@ -1,15 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 const ACCENT = "#00E5FF";
-const RED = "#FF3333";
 
 type Region = "loading" | "IN" | "INTL";
 
-const PRICING: Record<"IN" | "INTL", { agency: string; ours: string; label: string }> = {
-  IN: { agency: "Rs 50,000 – 3,00,000", ours: "Rs 10,000 – 70,000", label: "India" },
-  INTL: { agency: "$2,500 – $7,500+", ours: "$500 – $5,000", label: "International" },
+const PRICING: Record<"IN" | "INTL", { agency: string; ours: string }> = {
+  IN:   { agency: "Rs 50,000 – 3,00,000", ours: "Rs 10,000 – 70,000" },
+  INTL: { agency: "$2,500 – $7,500+",     ours: "$500 – $5,000" },
 };
+
+// ─── Admin helpers (shared with Portfolio) ────────────────────────────────────
+const ADMIN_KEY  = "ns_adm";
+const ADMIN_PASS = "novasites2026";
+function checkAdmin(): boolean {
+  try { return atob(localStorage.getItem(ADMIN_KEY) ?? "") === ADMIN_PASS; } catch { return false; }
+}
 
 // ─── Navbar-style CTA button ──────────────────────────────────────────────────
 function GetQuoteButton() {
@@ -22,33 +28,17 @@ function GetQuoteButton() {
       onMouseDown={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(0.96)")}
       onMouseUp={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(1)")}
       style={{
-        position: "relative",
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "13px 40px",
-        fontSize: 11,
-        fontWeight: 700,
-        letterSpacing: "0.22em",
-        textTransform: "uppercase",
-        color: hov ? "#0A0A0A" : ACCENT,
+        position: "relative", display: "inline-flex", alignItems: "center",
+        padding: "13px 40px", fontSize: 11, fontWeight: 700, letterSpacing: "0.22em",
+        textTransform: "uppercase", color: hov ? "#0A0A0A" : ACCENT,
         border: `1px solid ${hov ? ACCENT : "rgba(0,229,255,0.5)"}`,
-        background: "transparent",
-        overflow: "hidden",
-        cursor: "pointer",
-        textDecoration: "none",
-        transition: "color 0.22s, border-color 0.22s",
-        userSelect: "none",
+        background: "transparent", overflow: "hidden", cursor: "pointer",
+        textDecoration: "none", transition: "color 0.22s, border-color 0.22s", userSelect: "none",
       }}
     >
-      <motion.span
-        style={{ position: "absolute", inset: 0, background: ACCENT, originX: 0, display: "block" }}
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: hov ? 1 : 0 }}
-        transition={{ duration: 0.22, ease: "easeInOut" }}
-      />
-      {/* TL bracket */}
+      <motion.span style={{ position: "absolute", inset: 0, background: ACCENT, originX: 0, display: "block" }}
+        initial={{ scaleX: 0 }} animate={{ scaleX: hov ? 1 : 0 }} transition={{ duration: 0.22, ease: "easeInOut" }} />
       <span style={{ position: "absolute", top: 5, left: 5, width: 9, height: 9, borderTop: `1.5px solid ${ACCENT}`, borderLeft: `1.5px solid ${ACCENT}`, zIndex: 2, opacity: hov ? 0 : 1, transition: "opacity 0.15s" }} />
-      {/* BR bracket */}
       <span style={{ position: "absolute", bottom: 5, right: 5, width: 9, height: 9, borderBottom: `1.5px solid ${ACCENT}`, borderRight: `1.5px solid ${ACCENT}`, zIndex: 2, opacity: hov ? 0 : 1, transition: "opacity 0.15s" }} />
       <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontFamily: "monospace", opacity: hov ? 1 : 0.5, transition: "opacity 0.2s" }}>{">"}</span>
@@ -61,6 +51,21 @@ function GetQuoteButton() {
 export function Pricing() {
   const [region, setRegion] = useState<Region>("loading");
   const [manual, setManual] = useState<"IN" | "INTL" | null>(null);
+  const [isAdmin, setIsAdmin] = useState(checkAdmin);
+
+  // Triple-click on heading to reveal admin toggle (re-checks localStorage in case
+  // the user just authenticated in Portfolio on the same page session)
+  const clickCount = useRef(0);
+  const clickTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleHeadingClick = () => {
+    clickCount.current += 1;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 900);
+    if (clickCount.current >= 3) {
+      clickCount.current = 0;
+      setIsAdmin(checkAdmin()); // re-read localStorage — works if admin logged in via Portfolio
+    }
+  };
 
   useEffect(() => {
     fetch("https://ipapi.co/json/")
@@ -75,34 +80,40 @@ export function Pricing() {
   return (
     <section id="pricing" className="py-24 bg-background border-t border-border">
       <div className="container mx-auto px-6">
-        <h2><span className="anchor-prefix">//</span> Elite engineering. Traditional agency prices liquidated.</h2>
+        <h2 onClick={handleHeadingClick} style={{ cursor: "default", userSelect: "none" }}>
+          <span className="anchor-prefix">//</span> Elite engineering. Traditional agency prices liquidated.
+        </h2>
 
-        {/* Region indicator */}
+        {/* Region line — admin sees toggle buttons, visitors see plain label */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, marginBottom: 48 }}>
-          <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em" }}>
+          <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em" }}>
             PRICES SHOWN FOR:
           </span>
-          {(["IN", "INTL"] as const).map((r) => (
-            <button
-              key={r}
-              onClick={() => setManual(r)}
-              style={{
-                fontFamily: "monospace", fontSize: 10, letterSpacing: "0.1em",
-                padding: "3px 10px", borderRadius: 3, cursor: "pointer",
-                border: `1px solid ${effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.15)"}`,
-                color: effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.35)",
-                background: effectiveRegion === r ? "rgba(0,229,255,0.06)" : "transparent",
-                transition: "all 0.2s",
-              }}
-            >
-              {r === "IN" ? "INDIA" : "INTERNATIONAL"}
-            </button>
-          ))}
-          {region === "loading" && (
-            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.25)" }}>detecting…</span>
+
+          {isAdmin ? (
+            /* Admin: clickable region toggle */
+            (["IN", "INTL"] as const).map((r) => (
+              <button key={r} onClick={() => setManual(r)}
+                style={{
+                  fontFamily: "monospace", fontSize: 10, letterSpacing: "0.1em",
+                  padding: "3px 10px", borderRadius: 3, cursor: "pointer",
+                  border: `1px solid ${effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.15)"}`,
+                  color: effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.35)",
+                  background: effectiveRegion === r ? "rgba(0,229,255,0.06)" : "transparent",
+                  transition: "all 0.2s",
+                }}>
+                {r === "IN" ? "INDIA" : "INTERNATIONAL"}
+              </button>
+            ))
+          ) : (
+            /* Visitor: plain read-only label */
+            <span style={{ fontFamily: "monospace", fontSize: 10, color: ACCENT, letterSpacing: "0.1em" }}>
+              {region === "loading" ? "—" : effectiveRegion === "IN" ? "INDIA" : "INTERNATIONAL"}
+            </span>
           )}
-          {region !== "loading" && !manual && (
-            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.25)" }}>auto-detected</span>
+
+          {region === "loading" && (
+            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.22)" }}>detecting…</span>
           )}
         </div>
 
@@ -113,22 +124,16 @@ export function Pricing() {
             <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
             <h3 className="text-2xl font-bold text-white mb-2">Traditional Agency Model</h3>
             <p className="text-muted-foreground mb-8">WordPress / Wix / Elementor</p>
-
             <ul className="space-y-4 mb-10 text-muted-foreground">
               <li className="flex items-center"><span className="text-destructive mr-2">✕</span> 4.5+ second load times</li>
               <li className="flex items-center"><span className="text-destructive mr-2">✕</span> Monthly maintenance retainers</li>
               <li className="flex items-center"><span className="text-destructive mr-2">✕</span> 4–8 week bloated timelines</li>
               <li className="flex items-center"><span className="text-destructive mr-2">✕</span> You rent, they own the code</li>
             </ul>
-
             <div className="pt-8 border-t border-border">
               <div className="text-sm text-muted-foreground mb-1">Standard Industry Pricing</div>
-              <motion.div
-                key={effectiveRegion + "-agency"}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-3xl font-bold text-white line-through opacity-50"
-              >
+              <motion.div key={effectiveRegion + "-agency"} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                className="text-3xl font-bold text-white line-through opacity-50">
                 {region === "loading" && !manual ? "—" : p.agency}
               </motion.div>
             </div>
@@ -139,22 +144,16 @@ export function Pricing() {
             <div className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(0,229,255,0.5)]" />
             <h3 className="text-2xl font-bold text-white mb-2">Custom Hand-Coded Engine</h3>
             <p className="text-primary mb-8 font-mono text-sm">NOVASITES // ARCHITECTURE</p>
-
             <ul className="space-y-4 mb-10 text-white">
               <li className="flex items-center"><span className="text-primary mr-2">✓</span> Sub-second load times</li>
               <li className="flex items-center"><span className="text-primary mr-2">✓</span> Zero maintenance required</li>
               <li className="flex items-center"><span className="text-primary mr-2">✓</span> 5–10 day rapid deployment</li>
               <li className="flex items-center"><span className="text-primary mr-2">✓</span> 100% asset ownership</li>
             </ul>
-
             <div className="pt-8 border-t border-border">
               <div className="text-sm text-primary font-mono mb-1">One-Time Deployment Fee</div>
-              <motion.div
-                key={effectiveRegion + "-ours"}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl font-black text-white"
-              >
+              <motion.div key={effectiveRegion + "-ours"} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                className="text-4xl font-black text-white">
                 {region === "loading" && !manual ? "—" : p.ours}
               </motion.div>
             </div>
@@ -168,7 +167,6 @@ export function Pricing() {
           </p>
           <GetQuoteButton />
         </div>
-
       </div>
     </section>
   );
