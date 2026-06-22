@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { checkAdmin } from "../utils/auth";
 
 const ACCENT = "#00E5FF";
 
@@ -9,12 +10,6 @@ const PRICING: Record<"IN" | "INTL", { agency: string; ours: string }> = {
   IN:   { agency: "₹50,000 - ₹3,00,000", ours: "₹10,000 - ₹70,000" },
   INTL: { agency: "$2,500 - $7,500+",     ours: "$500 - $5,000"      },
 };
-
-const ADMIN_KEY  = "ns_adm";
-const ADMIN_PASS = "novasites2026";
-function checkAdmin(): boolean {
-  try { return atob(localStorage.getItem(ADMIN_KEY) ?? "") === ADMIN_PASS; } catch { return false; }
-}
 
 // ─── Navbar-style CTA button ──────────────────────────────────────────────────
 function GetQuoteButton() {

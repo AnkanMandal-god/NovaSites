@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { checkAdmin, logout, attemptLogin, getRateLimit } from "../utils/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type Project = {
@@ -45,8 +46,6 @@ const ARCHIVE_PROJECTS = [
 ];
 
 const STORAGE_KEY = "webforge_projects";
-const ADMIN_KEY   = "ns_adm";
-const ADMIN_PASS  = "novasites2026";
 const ACCENT = "#00E5FF";
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
@@ -56,15 +55,6 @@ function loadProjects(): Project[] {
 }
 function saveProjects(p: Project[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
-}
-function checkAdmin(): boolean {
-  try { return atob(localStorage.getItem(ADMIN_KEY) ?? "") === ADMIN_PASS; } catch { return false; }
-}
-function setAdminFlag() {
-  localStorage.setItem(ADMIN_KEY, btoa(ADMIN_PASS));
-}
-function clearAdminFlag() {
-  localStorage.removeItem(ADMIN_KEY);
 }
 
 // ─── YouTube helper ───────────────────────────────────────────────────────────
@@ -160,27 +150,94 @@ function ArchiveButton({ expanded, onClick }: { expanded: boolean; onClick: () =
   );
 }
 
-// ─── Admin password modal ─────────────────────────────────────────────────────
+// ─── Admin password modal (SHA-256 + rate limiting) ──────────────────────────
 function AdminModal({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
   const [pw, setPw] = useState("");
-  const [err, setErr] = useState(false);
-  const submit = (e: React.FormEvent) => {
+  const [phase, setPhase] = useState<"idle" | "loading" | "wrong" | "locked">("idle");
+  const [remainingMs, setRemainingMs] = useState(0);
+  const [attemptsLeft, setAttemptsLeft] = useState(3);
+
+  // Check lockout on mount
+  useEffect(() => {
+    const { locked, remainingMs: ms, attempts } = getRateLimit();
+    if (locked) { setPhase("locked"); setRemainingMs(ms); }
+    else { setAttemptsLeft(Math.max(0, 3 - attempts)); }
+  }, []);
+
+  // Countdown while locked
+  useEffect(() => {
+    if (phase !== "locked") return;
+    const t = setInterval(() => {
+      setRemainingMs((ms) => {
+        const next = ms - 1000;
+        if (next <= 0) { setPhase("idle"); setAttemptsLeft(3); return 0; }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [phase]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pw === ADMIN_PASS) { setAdminFlag(); onSuccess(); }
-    else { setErr(true); setPw(""); setTimeout(() => setErr(false), 1800); }
+    setPhase("loading");
+    const result = await attemptLogin(pw);
+    if (result === "ok") {
+      onSuccess();
+    } else if (result === "locked") {
+      const { remainingMs: ms } = getRateLimit();
+      setPhase("locked"); setRemainingMs(ms);
+    } else {
+      const { attempts } = getRateLimit();
+      setAttemptsLeft(Math.max(0, 3 - attempts));
+      setPhase("wrong"); setPw("");
+      setTimeout(() => setPhase("idle"), 1800);
+    }
   };
+
+  const mins = Math.ceil(remainingMs / 60000);
+  const isLocked  = phase === "locked";
+  const isWrong   = phase === "wrong";
+  const isLoading = phase === "loading";
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
       onClick={onClose}>
       <motion.form initial={{ scale: 0.94, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94 }}
         onSubmit={submit} onClick={(e) => e.stopPropagation()}
-        style={{ background: "#0d0d0d", border: `1px solid ${err ? "#FF3333" : "rgba(0,229,255,0.3)"}`, borderRadius: 8, padding: "32px 28px", width: 320, transition: "border-color 0.3s" }}>
+        style={{ background: "#0d0d0d", border: `1px solid ${isWrong || isLocked ? "#FF3333" : "rgba(0,229,255,0.3)"}`, borderRadius: 8, padding: "32px 28px", width: 320, transition: "border-color 0.3s", boxSizing: "border-box" }}>
+
         <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: ACCENT, marginBottom: 18 }}>// ADMIN ACCESS</div>
-        <input autoFocus type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Enter admin password"
-          style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: `1px solid ${err ? "#FF3333" : "rgba(255,255,255,0.15)"}`, borderRadius: 4, padding: "10px 12px", color: "#fff", fontFamily: "monospace", fontSize: 13, outline: "none", boxSizing: "border-box", transition: "border-color 0.3s" }} />
-        {err && <div style={{ fontFamily: "monospace", fontSize: 10, color: "#FF3333", marginTop: 8 }}>INCORRECT PASSWORD</div>}
-        <button type="submit" style={{ marginTop: 16, width: "100%", padding: "10px", background: ACCENT, border: "none", borderRadius: 4, color: "#0a0a0a", fontWeight: 700, fontSize: 11, letterSpacing: "0.15em", cursor: "pointer", fontFamily: "monospace" }}>AUTHENTICATE</button>
+
+        {isLocked ? (
+          <div style={{ fontFamily: "monospace", fontSize: 11, color: "#FF3333", lineHeight: 1.6, marginBottom: 18 }}>
+            ACCESS LOCKED<br />
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>
+              Try again in {mins} minute{mins !== 1 ? "s" : ""}
+            </span>
+          </div>
+        ) : (
+          <>
+            <input
+              autoFocus type="password" value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              disabled={isLoading}
+              placeholder="Enter admin password"
+              style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: `1px solid ${isWrong ? "#FF3333" : "rgba(255,255,255,0.15)"}`, borderRadius: 4, padding: "10px 12px", color: "#fff", fontFamily: "monospace", fontSize: 13, outline: "none", boxSizing: "border-box", transition: "border-color 0.3s", opacity: isLoading ? 0.6 : 1 }}
+            />
+            {isWrong && (
+              <div style={{ fontFamily: "monospace", fontSize: 10, color: "#FF3333", marginTop: 8 }}>
+                INCORRECT — {attemptsLeft} attempt{attemptsLeft !== 1 ? "s" : ""} remaining
+              </div>
+            )}
+            <button
+              type="submit" disabled={isLoading || !pw}
+              style={{ marginTop: 16, width: "100%", padding: "10px", background: isLoading ? "rgba(0,229,255,0.5)" : ACCENT, border: "none", borderRadius: 4, color: "#0a0a0a", fontWeight: 700, fontSize: 11, letterSpacing: "0.15em", cursor: isLoading ? "not-allowed" : "pointer", fontFamily: "monospace", transition: "background 0.2s" }}>
+              {isLoading ? "VERIFYING..." : "AUTHENTICATE"}
+            </button>
+          </>
+        )}
+
         <button type="button" onClick={onClose} style={{ marginTop: 8, width: "100%", padding: "8px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, color: "rgba(255,255,255,0.3)", fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>CANCEL</button>
       </motion.form>
     </motion.div>
@@ -322,7 +379,7 @@ export function Portfolio() {
     clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 900);
     if (clickCount.current >= 3) {
       clickCount.current = 0;
-      if (isAdmin) { clearAdminFlag(); setIsAdmin(false); setEditMode(false); }
+      if (isAdmin) { logout(); setIsAdmin(false); setEditMode(false); }
       else setShowAdminModal(true);
     }
   };

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { checkAdmin } from "../utils/auth";
 
 // ─── Types & persistence ──────────────────────────────────────────────────────
 export type Testimonial = {
@@ -20,8 +21,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 ];
 
 const STORAGE_KEY = "webforge_testimonials";
-const ADMIN_KEY   = "ns_adm";
-const ADMIN_PASS  = "novasites2026";
 
 function loadTestimonials(): Testimonial[] {
   try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch {}
@@ -29,9 +28,6 @@ function loadTestimonials(): Testimonial[] {
 }
 function saveTestimonials(t: Testimonial[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(t)); } catch {}
-}
-function checkAdmin(): boolean {
-  try { return atob(localStorage.getItem(ADMIN_KEY) ?? "") === ADMIN_PASS; } catch { return false; }
 }
 
 const ACCENT = "#00E5FF";
