@@ -417,15 +417,90 @@ export function Navbar() {
   );
 }
 
+/* ── Social icon SVGs ── */
+function IconInstagram() {
+  return (
+    <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="5" />
+      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function IconLinkedIn() {
+  return (
+    <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="3" />
+      <line x1="8" y1="11" x2="8" y2="16" /><line x1="8" y1="8" x2="8" y2="8.01" />
+      <line x1="12" y1="16" x2="12" y2="11" /><path d="M16 16v-3a2 2 0 0 0-4 0" />
+    </svg>
+  );
+}
+function IconTwitterX() {
+  return (
+    <svg width={17} height={17} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+const SOCIALS = [
+  { Icon: IconInstagram, href: "https://instagram.com/novasites.co",  label: "Instagram" },
+  { Icon: IconLinkedIn,  href: "https://linkedin.com/company/novasites", label: "LinkedIn" },
+  { Icon: IconTwitterX,  href: "https://x.com/novasites_co",          label: "Twitter/X" },
+];
+
 export function Footer() {
   return (
-    <footer className="bg-background py-12 border-t border-border text-center">
-      <div className="container mx-auto px-6">
-        <div className="text-2xl font-bold tracking-widest text-white mb-2">NOVASITES</div>
-        <p className="text-muted-foreground text-sm mb-8">
-          High-performance digital infrastructure for local businesses.
-        </p>
-        <div className="font-mono text-xs text-muted-foreground/50">
+    <footer style={{ background: "rgba(8,8,8,0.99)", borderTop: "1px solid rgba(255,255,255,0.07)", padding: "36px 0 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px" }}>
+        {/* Row 1: logo + socials */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
+          {/* Logo */}
+          <a href="#" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+            <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#00E5FF", fontSize: 13 }}>//</span>
+            <span style={{ fontWeight: 900, color: "#fff", fontSize: 17, letterSpacing: "0.2em" }}>NOVASITES</span>
+          </a>
+          {/* Socials */}
+          <div style={{ display: "flex", gap: 6 }}>
+            {SOCIALS.map(({ Icon, href, label }) => (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "rgba(255,255,255,0.4)", transition: "color 0.2s, border-color 0.2s" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#00E5FF"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,229,255,0.4)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.4)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; }}>
+                <Icon />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 20 }} />
+
+        {/* Row 2: tagline | contact */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+            High-performance digital infrastructure for local businesses.
+          </p>
+          <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+            <a href="mailto:ankan@novasites.co"
+              style={{ fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6, transition: "color 0.2s" }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#00E5FF")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.45)")}>
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="2,4 12,13 22,4" /></svg>
+              ankan@novasites.co
+            </a>
+            <a href="tel:+919547667707"
+              style={{ fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6, transition: "color 0.2s" }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#00E5FF")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.45)")}>
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+              +91 95476 67707
+            </a>
+          </div>
+        </div>
+
+        {/* Row 3: system text */}
+        <div style={{ fontFamily: "monospace", fontSize: 9.5, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", textAlign: "center" }}>
           // SYSTEM: NOVASITES_CORE // {new Date().getFullYear()} // ALL RIGHTS RESERVED
         </div>
       </div>

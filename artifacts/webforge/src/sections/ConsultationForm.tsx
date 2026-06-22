@@ -5,10 +5,37 @@ export function ConsultationForm() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
 
-  const nextStep = () => setStep(s => Math.min(s + 1, 3));
+  // Step 1
+  const [businessName, setBusinessName] = useState("");
+  const [services, setServices] = useState("");
+  const [location, setLocation] = useState("");
+  // Step 2
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  // Step 3
+  const [preferredTime, setPreferredTime] = useState("morning");
+  const [notes, setNotes] = useState("");
+
+  const nextStep = () => setStep((s) => Math.min(s + 1, 3));
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const subject = encodeURIComponent(`Consultation Request — ${businessName}`);
+    const body = encodeURIComponent(
+      `BUSINESS PROFILE\n` +
+      `Business: ${businessName}\n` +
+      `Services: ${services}\n` +
+      `Location: ${location}\n\n` +
+      `CONTACT DETAILS\n` +
+      `Name: ${fullName}\n` +
+      `Phone: ${phone}\n` +
+      `Email: ${email}\n\n` +
+      `SCHEDULE\n` +
+      `Preferred Time: ${preferredTime}\n` +
+      `Notes: ${notes || "None"}`
+    );
+    window.open(`mailto:ankan@novasites.co?subject=${subject}&body=${body}`);
     setSubmitted(true);
   };
 
@@ -22,34 +49,35 @@ export function ConsultationForm() {
 
         <div className="bg-card border border-border rounded-md overflow-hidden relative">
           <div className="absolute top-0 left-0 h-1 bg-primary transition-all duration-500 ease-out" style={{ width: `${(step / 3) * 100}%` }} />
-          
+
           <div className="p-8">
             {submitted ? (
               <div className="text-center py-12">
-                <div className="text-4xl mb-4">✅</div>
+                <div className="text-primary font-mono text-4xl mb-4">[OK]</div>
                 <h3 className="text-2xl font-bold text-white mb-2">Request Received</h3>
-                <p className="text-muted-foreground">We'll be in touch shortly to confirm your consultation time.</p>
+                <p className="text-muted-foreground">Your email client should have opened with the pre-filled request. We'll be in touch within one business day.</p>
+                <p className="text-muted-foreground mt-3 font-mono text-xs">Alternatively: <a href="mailto:ankan@novasites.co" className="text-primary">ankan@novasites.co</a> | <a href="tel:+919547667707" className="text-primary">+91 95476 67707</a></p>
               </div>
             ) : (
               <form onSubmit={onSubmit}>
                 <div className="text-primary font-mono text-xs mb-6">
                   STEP 0{step} // {step === 1 ? "BUSINESS PROFILE" : step === 2 ? "CONTACT DETAILS" : "SCHEDULE & SCOPE"}
                 </div>
-                
+
                 <AnimatePresence mode="wait">
                   {step === 1 && (
                     <motion.div key="1" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4">
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Business Name</label>
-                        <input type="text" required placeholder="Acme Corp" />
+                        <input type="text" required placeholder="Acme Corp" value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
                       </div>
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Primary Services</label>
-                        <input type="text" required placeholder="e.g. HVAC, Roofing, Consulting" />
+                        <input type="text" required placeholder="e.g. HVAC, Roofing, Consulting" value={services} onChange={(e) => setServices(e.target.value)} />
                       </div>
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Location / City</label>
-                        <input type="text" required placeholder="Seattle, WA" />
+                        <input type="text" required placeholder="Kolkata, WB" value={location} onChange={(e) => setLocation(e.target.value)} />
                       </div>
                       <button type="button" onClick={nextStep} className="btn-primary w-full mt-4">NEXT STEP</button>
                     </motion.div>
@@ -59,15 +87,15 @@ export function ConsultationForm() {
                     <motion.div key="2" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4">
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Full Name</label>
-                        <input type="text" required placeholder="John Doe" />
+                        <input type="text" required placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                       </div>
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Phone Number</label>
-                        <input type="tel" required placeholder="(555) 123-4567" />
+                        <input type="tel" required placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
                       </div>
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Email Address</label>
-                        <input type="email" required placeholder="john@example.com" />
+                        <input type="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
                       </div>
                       <button type="button" onClick={nextStep} className="btn-primary w-full mt-4">NEXT STEP</button>
                     </motion.div>
@@ -77,17 +105,17 @@ export function ConsultationForm() {
                     <motion.div key="3" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4">
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Preferred Reach Time</label>
-                        <select required>
-                          <option value="morning">Morning (8am - 12pm)</option>
-                          <option value="afternoon">Afternoon (12pm - 5pm)</option>
-                          <option value="evening">Evening (5pm - 8pm)</option>
+                        <select required value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)}>
+                          <option value="morning">Morning (8am – 12pm)</option>
+                          <option value="afternoon">Afternoon (12pm – 5pm)</option>
+                          <option value="evening">Evening (5pm – 8pm)</option>
                         </select>
                       </div>
                       <div>
                         <label className="block text-sm text-muted-foreground mb-2">Context / Pre-Call Notes (Optional)</label>
-                        <textarea rows={4} placeholder="Tell us about your goals..." />
+                        <textarea rows={4} placeholder="Tell us about your goals..." value={notes} onChange={(e) => setNotes(e.target.value)} />
                       </div>
-                      <button type="submit" className="btn-primary w-full mt-4">⚡ CONFIRM DETAILS & SUBMIT REQUEST</button>
+                      <button type="submit" className="btn-primary w-full mt-4">CONFIRM DETAILS & SUBMIT REQUEST</button>
                     </motion.div>
                   )}
                 </AnimatePresence>
