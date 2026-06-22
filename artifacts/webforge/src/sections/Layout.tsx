@@ -202,7 +202,7 @@ function CtaButton() {
       {/* Text */}
       <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 6 }}>
         <span style={{ fontFamily: "monospace", opacity: hov ? 1 : 0.5, transition: "opacity 0.2s" }}>{">"}</span>
-        {hov ? "INITIALIZE" : "GET STARTED"}
+        {hov ? "INITIALIZE" : "GET QUOTE"}
       </span>
     </a>
   );

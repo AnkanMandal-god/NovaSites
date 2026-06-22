@@ -6,11 +6,10 @@ const ACCENT = "#00E5FF";
 type Region = "loading" | "IN" | "INTL";
 
 const PRICING: Record<"IN" | "INTL", { agency: string; ours: string }> = {
-  IN:   { agency: "Rs 50,000 – 3,00,000", ours: "Rs 10,000 – 70,000" },
-  INTL: { agency: "$2,500 – $7,500+",     ours: "$500 – $5,000" },
+  IN:   { agency: "₹50,000 - ₹3,00,000", ours: "₹10,000 - ₹70,000" },
+  INTL: { agency: "$2,500 - $7,500+",     ours: "$500 - $5,000"      },
 };
 
-// ─── Admin helpers (shared with Portfolio) ────────────────────────────────────
 const ADMIN_KEY  = "ns_adm";
 const ADMIN_PASS = "novasites2026";
 function checkAdmin(): boolean {
@@ -53,8 +52,8 @@ export function Pricing() {
   const [manual, setManual] = useState<"IN" | "INTL" | null>(null);
   const [isAdmin, setIsAdmin] = useState(checkAdmin);
 
-  // Triple-click on heading to reveal admin toggle (re-checks localStorage in case
-  // the user just authenticated in Portfolio on the same page session)
+  // Triple-click heading to reveal admin toggle (re-reads localStorage — works
+  // after authenticating via Portfolio on the same session)
   const clickCount = useRef(0);
   const clickTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleHeadingClick = () => {
@@ -63,7 +62,7 @@ export function Pricing() {
     clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 900);
     if (clickCount.current >= 3) {
       clickCount.current = 0;
-      setIsAdmin(checkAdmin()); // re-read localStorage — works if admin logged in via Portfolio
+      setIsAdmin(checkAdmin());
     }
   };
 
@@ -80,42 +79,34 @@ export function Pricing() {
   return (
     <section id="pricing" className="py-24 bg-background border-t border-border">
       <div className="container mx-auto px-6">
-        <h2 onClick={handleHeadingClick} style={{ cursor: "default", userSelect: "none" }}>
+        <h2
+          onClick={handleHeadingClick}
+          style={{ cursor: "default", userSelect: "none", marginBottom: 48 }}
+        >
           <span className="anchor-prefix">//</span> Elite engineering. Traditional agency prices liquidated.
         </h2>
 
-        {/* Region line — admin sees toggle buttons, visitors see plain label */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, marginBottom: 48 }}>
-          <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em" }}>
-            PRICES SHOWN FOR:
-          </span>
-
-          {isAdmin ? (
-            /* Admin: clickable region toggle */
-            (["IN", "INTL"] as const).map((r) => (
+        {/* Admin-only region toggle — completely invisible to visitors */}
+        {isAdmin && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32, marginTop: -28 }}>
+            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(0,229,255,0.5)", letterSpacing: "0.14em" }}>
+              ADMIN — REGION:
+            </span>
+            {(["IN", "INTL"] as const).map((r) => (
               <button key={r} onClick={() => setManual(r)}
                 style={{
-                  fontFamily: "monospace", fontSize: 10, letterSpacing: "0.1em",
-                  padding: "3px 10px", borderRadius: 3, cursor: "pointer",
-                  border: `1px solid ${effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.15)"}`,
-                  color: effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.35)",
+                  fontFamily: "monospace", fontSize: 9, letterSpacing: "0.1em",
+                  padding: "2px 8px", borderRadius: 3, cursor: "pointer",
+                  border: `1px solid ${effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.12)"}`,
+                  color: effectiveRegion === r ? ACCENT : "rgba(255,255,255,0.3)",
                   background: effectiveRegion === r ? "rgba(0,229,255,0.06)" : "transparent",
                   transition: "all 0.2s",
                 }}>
                 {r === "IN" ? "INDIA" : "INTERNATIONAL"}
               </button>
-            ))
-          ) : (
-            /* Visitor: plain read-only label */
-            <span style={{ fontFamily: "monospace", fontSize: 10, color: ACCENT, letterSpacing: "0.1em" }}>
-              {region === "loading" ? "—" : effectiveRegion === "IN" ? "INDIA" : "INTERNATIONAL"}
-            </span>
-          )}
-
-          {region === "loading" && (
-            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.22)" }}>detecting…</span>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Pricing cards */}
         <div className="grid md:grid-cols-2 gap-0 border border-border rounded-lg overflow-hidden max-w-5xl mx-auto">
