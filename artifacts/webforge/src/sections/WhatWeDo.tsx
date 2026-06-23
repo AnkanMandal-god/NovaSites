@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 const PILLARS = [
@@ -244,13 +244,22 @@ function PillarCard({
 }
 
 export function WhatWeDo() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  const checkMobile = useCallback(() => setIsMobile(window.innerWidth < 768), []);
+  useEffect(() => {
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [checkMobile]);
+
   return (
     <section
       id="what-we-do"
       style={{
         borderTop: "1px solid rgba(255,255,255,0.06)",
         background: "rgba(8,8,8,0.99)",
-        padding: "72px 48px 80px",
+        padding: isMobile ? "48px 20px 56px" : "72px 48px 80px",
         boxSizing: "border-box",
       }}
     >
@@ -261,7 +270,7 @@ export function WhatWeDo() {
           margin: "0 auto",
           display: "flex",
           flexDirection: "column",
-          gap: 48,
+          gap: isMobile ? 32 : 48,
         }}
       >
         {/* Label + Headline */}
@@ -292,7 +301,7 @@ export function WhatWeDo() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.04 }}
             style={{
-              fontSize: "clamp(1.7rem, 2.8vw, 2.4rem)",
+              fontSize: "clamp(1.5rem, 6vw, 2.4rem)",
               fontWeight: 900,
               letterSpacing: "-0.01em",
               color: "#fff",
@@ -305,12 +314,12 @@ export function WhatWeDo() {
           </motion.h2>
         </div>
 
-        {/* Horizontal cards row */}
+        {/* Cards: row on desktop, column on mobile */}
         <div
           style={{
             display: "flex",
-            flexDirection: "row",
-            gap: 24,
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? 0 : 24,
             alignItems: "stretch",
           }}
         >

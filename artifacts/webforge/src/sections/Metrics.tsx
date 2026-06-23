@@ -131,6 +131,14 @@ function FeatureGrid() {
     FEATURES.map(() => ({ leftTitle:"", leftSub:"", leftIcon:false, rightTitle:"", rightSub:"", rightIcon:false }))
   );
   const [doneTyped, setDoneTyped] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -253,7 +261,7 @@ function FeatureGrid() {
           );
 
           return (
-            <div key={r} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div key={r} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
               {/* Left card */}
               <div style={cardStyle}>
                 <TextBlock

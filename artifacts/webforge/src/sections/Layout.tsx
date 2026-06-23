@@ -5,7 +5,6 @@ import {
   useMotionValue,
   useSpring,
 } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "What We Do", href: "#what-we-do" },
@@ -208,9 +207,41 @@ function CtaButton() {
   );
 }
 
+/* Hamburger icon for mobile */
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <div style={{ width: 22, height: 16, position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <motion.span
+        animate={{ rotate: open ? 45 : 0, y: open ? 7 : 0 }}
+        transition={{ duration: 0.22 }}
+        style={{ display: "block", height: 2, background: "#00E5FF", borderRadius: 1, transformOrigin: "center" }}
+      />
+      <motion.span
+        animate={{ opacity: open ? 0 : 1, scaleX: open ? 0 : 1 }}
+        transition={{ duration: 0.18 }}
+        style={{ display: "block", height: 2, background: "#00E5FF", borderRadius: 1 }}
+      />
+      <motion.span
+        animate={{ rotate: open ? -45 : 0, y: open ? -7 : 0 }}
+        transition={{ duration: 0.22 }}
+        style={{ display: "block", height: 2, background: "#00E5FF", borderRadius: 1, transformOrigin: "center" }}
+      />
+    </div>
+  );
+}
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -223,17 +254,19 @@ export function Navbar() {
 
   const navVisible = !scrolled || navOpen;
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
     <>
-      {/* ── Full navbar — slides up when scrolled ── */}
+      {/* ── Full navbar — slides up when scrolled (desktop only behaviour) ── */}
       <motion.div
         className="fixed top-0 left-0 right-0 z-50"
         animate={{
-          y: navVisible ? 0 : "-100%",
-          opacity: navVisible ? 1 : 0,
+          y: isMobile ? 0 : (navVisible ? 0 : "-100%"),
+          opacity: isMobile ? 1 : (navVisible ? 1 : 0),
         }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-        onMouseLeave={() => { if (scrolled) setNavOpen(false); }}
+        onMouseLeave={() => { if (scrolled && !isMobile) setNavOpen(false); }}
       >
         {/* Top accent line */}
         <div
@@ -247,7 +280,7 @@ export function Navbar() {
         {/* Bar */}
         <div
           style={{
-            background: "rgba(8,8,8,0.90)",
+            background: "rgba(8,8,8,0.95)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             borderBottom: "1px solid rgba(0,229,255,0.08)",
@@ -255,7 +288,7 @@ export function Navbar() {
         >
           <div
             className="relative mx-auto flex items-center justify-between"
-            style={{ maxWidth: 1200, height: 60, padding: "0 28px" }}
+            style={{ maxWidth: 1200, height: 60, padding: "0 20px" }}
           >
             {/* Left stripe */}
             <div
@@ -280,53 +313,149 @@ export function Navbar() {
               <span className="font-mono font-bold" style={{ color: "#00E5FF", fontSize: 14 }}>
                 //
               </span>
-              <span className="font-bold text-white" style={{ fontSize: 20, letterSpacing: "0.22em" }}>NOVASITES</span>
+              <span className="font-bold text-white" style={{ fontSize: isMobile ? 16 : 20, letterSpacing: "0.22em" }}>NOVASITES</span>
               <Cursor />
             </a>
 
-            {/* Center nav */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 flex items-center"
-            >
-              <motion.div
-                className="flex items-center"
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {NAV_LINKS.map((link, i) => (
-                  <div key={link.href} className="flex items-center">
-                    {/* Vertical divider before each link (except first) */}
-                    {i > 0 && (
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 1,
-                          height: 12,
-                          background: "rgba(0,229,255,0.2)",
-                          margin: "0 2px",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                    <MagneticLink href={link.href} label={link.label} index={i} />
-                  </div>
-                ))}
-              </motion.div>
-            </div>
+            {/* Desktop: Center nav */}
+            {!isMobile && (
+              <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+                <motion.div
+                  className="flex items-center"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {NAV_LINKS.map((link, i) => (
+                    <div key={link.href} className="flex items-center">
+                      {i > 0 && (
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: 1,
+                            height: 12,
+                            background: "rgba(0,229,255,0.2)",
+                            margin: "0 2px",
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                      <MagneticLink href={link.href} label={link.label} index={i} />
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+            )}
 
-            {/* CTA */}
-            <div className="shrink-0">
-              <CtaButton />
-            </div>
+            {/* Desktop: CTA */}
+            {!isMobile && (
+              <div className="shrink-0">
+                <CtaButton />
+              </div>
+            )}
+
+            {/* Mobile: Hamburger button */}
+            {isMobile && (
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <HamburgerIcon open={mobileMenuOpen} />
+              </button>
+            )}
           </div>
         </div>
 
         <ScanLine />
+
+        {/* Mobile dropdown menu */}
+        <AnimatePresence>
+          {isMobile && mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                background: "rgba(8,8,8,0.98)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                borderBottom: "1px solid rgba(0,229,255,0.12)",
+                paddingBottom: 20,
+              }}
+            >
+              {/* Nav links */}
+              {NAV_LINKS.map((link, i) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMobileMenu}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "14px 24px",
+                    fontFamily: "monospace",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.7)",
+                    textDecoration: "none",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    transition: "color 0.15s",
+                  }}
+                  onTouchStart={(e) => (e.currentTarget.style.color = "#00E5FF")}
+                  onTouchEnd={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+                >
+                  <span style={{ color: "#00E5FF", opacity: 0.6, fontSize: 9 }}>0{i + 1}</span>
+                  {link.label}
+                </a>
+              ))}
+
+              {/* CTA row */}
+              <div style={{ padding: "18px 24px 4px" }}>
+                <a
+                  href="#contact"
+                  onClick={closeMobileMenu}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "13px 0",
+                    width: "100%",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    color: "#0A0A0A",
+                    background: "#00E5FF",
+                    textDecoration: "none",
+                    boxShadow: "0 0 20px rgba(0,229,255,0.3)",
+                  }}
+                >
+                  <span style={{ fontFamily: "monospace" }}>{">"}</span>
+                  GET QUOTE
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
-      {/* ── Trapezoid arrow tab — hangs from top when scrolled, hides when nav open ── */}
+
+      {/* ── Trapezoid arrow tab — desktop only, hangs from top when scrolled ── */}
       <AnimatePresence>
-        {scrolled && !navOpen && (
+        {!isMobile && scrolled && !navOpen && (
           <motion.div
             className="fixed z-50"
             style={{
@@ -344,23 +473,18 @@ export function Navbar() {
             aria-label="Show navigation"
           >
             {(() => {
-              /* Trapezoid geometry: wider top, narrower bottom, hangs from top edge */
-              const TW = 88;   /* top width  */
-              const BW = 52;   /* bottom width */
-              const H  = 28;   /* height */
-              const inset = (TW - BW) / 2; /* = 18 */
-              /* SVG polygon points */
+              const TW = 88;
+              const BW = 52;
+              const H  = 28;
+              const inset = (TW - BW) / 2;
               const pts = `0,0 ${TW},0 ${TW - inset},${H} ${inset},${H}`;
-              /* Perimeter for dash animation */
-              const sideLen = Math.sqrt(inset * inset + H * H); /* ≈ 47.5 */
-              const perim = TW + sideLen + BW + sideLen;         /* ≈ 235 */
+              const sideLen = Math.sqrt(inset * inset + H * H);
+              const perim = TW + sideLen + BW + sideLen;
               const dashLen = 60;
-
               const clipPct = `polygon(0% 0%, 100% 0%, ${((TW - inset) / TW * 100).toFixed(1)}% 100%, ${(inset / TW * 100).toFixed(1)}% 100%)`;
 
               return (
                 <div style={{ position: "relative", width: TW, height: H }}>
-                  {/* Glass fill layer — clip-path gives it the trapezoid shape */}
                   <div
                     style={{
                       position: "absolute",
@@ -371,8 +495,6 @@ export function Navbar() {
                       clipPath: clipPct,
                     }}
                   />
-
-                  {/* SVG — border + perimeter animation only */}
                   <svg
                     width={TW}
                     height={H}
@@ -380,15 +502,12 @@ export function Navbar() {
                     style={{ position: "relative", display: "block" }}
                     overflow="visible"
                   >
-                    {/* Static dim border */}
                     <polygon
                       points={pts}
                       fill="none"
                       stroke="rgba(0,229,255,0.22)"
                       strokeWidth={1}
                     />
-
-                    {/* Animated perimeter glow segment */}
                     <motion.polygon
                       points={pts}
                       fill="none"
@@ -400,8 +519,6 @@ export function Navbar() {
                       transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
                       style={{ filter: "drop-shadow(0 0 2px #00E5FF)" }}
                     />
-
-                    {/* Chevron, centered */}
                     <g transform={`translate(${TW / 2}, ${H * 0.54})`}>
                       <line x1="-5" y1="-2.5" x2="0" y2="3" stroke="#00E5FF" strokeWidth={2} strokeLinecap="round" />
                       <line x1="0" y1="3" x2="5" y2="-2.5" stroke="#00E5FF" strokeWidth={2} strokeLinecap="round" />
