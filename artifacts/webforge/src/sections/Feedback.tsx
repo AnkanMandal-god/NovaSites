@@ -26,28 +26,30 @@ export function Feedback() {
   };
 
   return (
-    <section className="py-24 bg-card/30 border-t border-border">
-      <div className="container mx-auto px-6 max-w-2xl">
-        <h2 className="mb-4"><span className="anchor-prefix">//</span> Client feedback portal.</h2>
-        <p className="text-muted-foreground mb-8">
+    <section className="py-12 md:py-24 bg-card/30 border-t border-border">
+      <div className="container mx-auto px-4 sm:px-6 max-w-2xl">
+        <h2 className="text-xl sm:text-3xl mb-3 md:mb-4">
+          <span className="anchor-prefix">//</span> Client feedback portal.
+        </h2>
+        <p className="text-muted-foreground text-sm mb-5 md:mb-8">
           Submit verified deployment feedback. All entries are encrypted and recorded into our public archive.
         </p>
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={onSubmit} className="space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
             <div>
-              <label className="block text-sm text-muted-foreground mb-2">Professional Identification</label>
+              <label className="block text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">Professional Identification</label>
               <input type="text" required placeholder="Name, Role" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
-              <label className="block text-sm text-muted-foreground mb-2">Business Entity</label>
+              <label className="block text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">Business Entity</label>
               <input type="text" required placeholder="Company Name" value={company} onChange={(e) => setCompany(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-muted-foreground mb-2">Performance Rating</label>
-            <div className="flex gap-2 text-2xl cursor-pointer">
+            <label className="block text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">Performance Rating</label>
+            <div className="flex gap-2 text-xl sm:text-2xl cursor-pointer">
               {[1, 2, 3, 4, 5].map((star) => (
                 <span
                   key={star}
@@ -63,7 +65,7 @@ export function Feedback() {
           </div>
 
           <div>
-            <label className="block text-sm text-muted-foreground mb-2">Project Results / Testimonial</label>
+            <label className="block text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">Project Results / Testimonial</label>
             <textarea required rows={4} placeholder="Describe the impact of the deployment..." value={testimonial} onChange={(e) => setTestimonial(e.target.value)} />
           </div>
 
@@ -71,12 +73,13 @@ export function Feedback() {
             type="submit"
             disabled={submitted || rating === 0}
             className={`btn-ghost w-full ${submitted ? "border-green-500 text-green-500 hover:border-green-500 hover:bg-transparent" : ""}`}
+            style={{ fontSize: "clamp(9px, 2vw, 11px)" }}
           >
             {submitted ? "FEEDBACK SENT — CHECK YOUR EMAIL CLIENT" : "SUBMIT VERIFIED FEEDBACK"}
           </button>
         </form>
 
-        <div className="mt-8 text-center font-mono text-[10px] text-muted-foreground opacity-50">
+        <div className="mt-6 md:mt-8 text-center font-mono text-[10px] text-muted-foreground opacity-50">
           // SYSTEM: VERIFIED_SUBMISSION_PORTAL // 2026
         </div>
       </div>

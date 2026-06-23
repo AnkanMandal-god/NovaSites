@@ -11,8 +11,7 @@ const PRICING: Record<"IN" | "INTL", { agency: string; ours: string }> = {
   INTL: { agency: "$2,500 - $7,500+",     ours: "$500 - $5,000"      },
 };
 
-// ─── Navbar-style CTA button ──────────────────────────────────────────────────
-function GetQuoteButton() {
+function GetQuoteButton({ compact }: { compact?: boolean }) {
   const [hov, setHov] = useState(false);
   return (
     <a
@@ -23,7 +22,9 @@ function GetQuoteButton() {
       onMouseUp={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(1)")}
       style={{
         position: "relative", display: "inline-flex", alignItems: "center",
-        padding: "13px 40px", fontSize: 11, fontWeight: 700, letterSpacing: "0.22em",
+        padding: compact ? "10px 22px" : "13px 40px",
+        fontSize: compact ? 9 : 11,
+        fontWeight: 700, letterSpacing: "0.22em",
         textTransform: "uppercase", color: hov ? "#0A0A0A" : ACCENT,
         border: `1px solid ${hov ? ACCENT : "rgba(0,229,255,0.5)"}`,
         background: "transparent", overflow: "hidden", cursor: "pointer",
@@ -46,9 +47,8 @@ export function Pricing() {
   const [region, setRegion] = useState<Region>("loading");
   const [manual, setManual] = useState<"IN" | "INTL" | null>(null);
   const [isAdmin, setIsAdmin] = useState(checkAdmin);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Triple-click heading to reveal admin toggle (re-reads localStorage — works
-  // after authenticating via Portfolio on the same session)
   const clickCount = useRef(0);
   const clickTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleHeadingClick = () => {
@@ -62,6 +62,13 @@ export function Pricing() {
   };
 
   useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
     fetch("https://ipapi.co/json/")
       .then((r) => r.json())
       .then((data) => setRegion(data.country_code === "IN" ? "IN" : "INTL"))
@@ -71,22 +78,30 @@ export function Pricing() {
   const effectiveRegion: "IN" | "INTL" = manual ?? (region === "loading" ? "INTL" : region);
   const p = PRICING[effectiveRegion];
 
+  const m = isMobile;
+
   return (
-    <section id="pricing" className="py-24 bg-background border-t border-border">
-      <div className="container mx-auto px-6">
+    <section id="pricing" style={{ padding: m ? "48px 0" : "96px 0", background: "#0A0A0A", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: m ? "0 16px" : "0 48px", boxSizing: "border-box" }}>
+
         <h2
           onClick={handleHeadingClick}
-          style={{ cursor: "default", userSelect: "none", marginBottom: 48 }}
+          style={{
+            cursor: "default", userSelect: "none",
+            fontSize: m ? "clamp(1.1rem, 4.5vw, 1.5rem)" : "clamp(1.5rem, 2.5vw, 2.2rem)",
+            fontWeight: 900, color: "#fff",
+            margin: m ? "0 0 24px" : "0 0 48px",
+            lineHeight: 1.2, letterSpacing: "-0.01em",
+          }}
         >
-          <span className="anchor-prefix">//</span> Elite engineering. Traditional agency prices liquidated.
+          <span style={{ color: ACCENT, fontFamily: "monospace", fontWeight: 400, fontSize: "0.55em", verticalAlign: "middle", marginRight: 8 }}>//</span>
+          Elite engineering. Traditional agency prices liquidated.
         </h2>
 
-        {/* Admin-only region toggle — completely invisible to visitors */}
+        {/* Admin region toggle */}
         {isAdmin && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32, marginTop: -28 }}>
-            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(0,229,255,0.5)", letterSpacing: "0.14em" }}>
-              ADMIN — REGION:
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, marginTop: -12 }}>
+            <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(0,229,255,0.5)", letterSpacing: "0.14em" }}>ADMIN — REGION:</span>
             {(["IN", "INTL"] as const).map((r) => (
               <button key={r} onClick={() => setManual(r)}
                 style={{
@@ -103,55 +118,139 @@ export function Pricing() {
           </div>
         )}
 
-        {/* Pricing cards */}
-        <div className="grid md:grid-cols-2 gap-0 border border-border rounded-lg overflow-hidden max-w-5xl mx-auto">
+        {/* Pricing cards — always side-by-side */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: m ? 6 : 10,
+          overflow: "hidden",
+          maxWidth: m ? "100%" : 900,
+          margin: "0 auto",
+        }}>
           {/* Legacy Agency */}
-          <div className="bg-card p-10 border-r border-border relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
-            <h3 className="text-2xl font-bold text-white mb-2">Traditional Agency Model</h3>
-            <p className="text-muted-foreground mb-8">WordPress / Wix / Elementor</p>
-            <ul className="space-y-4 mb-10 text-muted-foreground">
-              <li className="flex items-center"><span className="text-destructive mr-2">✕</span> 4.5+ second load times</li>
-              <li className="flex items-center"><span className="text-destructive mr-2">✕</span> Monthly maintenance retainers</li>
-              <li className="flex items-center"><span className="text-destructive mr-2">✕</span> 4–8 week bloated timelines</li>
-              <li className="flex items-center"><span className="text-destructive mr-2">✕</span> You rent, they own the code</li>
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            padding: m ? "16px 14px" : "40px 40px",
+            borderRight: "1px solid rgba(255,255,255,0.08)",
+            position: "relative",
+          }}>
+            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: "#FF3333" }} />
+
+            <h3 style={{
+              fontSize: m ? 11 : 20,
+              fontWeight: 800, color: "#fff",
+              margin: m ? "0 0 4px" : "0 0 8px",
+              lineHeight: 1.2,
+            }}>
+              {m ? "Agency" : "Traditional Agency Model"}
+            </h3>
+
+            <p style={{
+              fontSize: m ? 8 : 12,
+              color: "rgba(255,255,255,0.35)",
+              margin: m ? "0 0 12px" : "0 0 28px",
+              fontFamily: "monospace",
+              letterSpacing: "0.04em",
+            }}>
+              {m ? "WP / Wix" : "WordPress / Wix / Elementor"}
+            </p>
+
+            <ul style={{ listStyle: "none", padding: 0, margin: m ? "0 0 12px" : "0 0 32px", display: "flex", flexDirection: "column", gap: m ? 6 : 14 }}>
+              {[
+                m ? "4.5s+ load" : "4.5+ second load times",
+                m ? "Monthly fees" : "Monthly maintenance retainers",
+                m ? "4–8 wk delays" : "4–8 week bloated timelines",
+                m ? "No ownership" : "You rent, they own the code",
+              ].map((item) => (
+                <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: m ? 5 : 8, fontSize: m ? 9 : 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+                  <span style={{ color: "#FF3333", flexShrink: 0, marginTop: 1 }}>✕</span>
+                  {item}
+                </li>
+              ))}
             </ul>
-            <div className="pt-8 border-t border-border">
-              <div className="text-sm text-muted-foreground mb-1">Standard Industry Pricing</div>
+
+            <div style={{ paddingTop: m ? 10 : 24, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: m ? 8 : 11, color: "rgba(255,255,255,0.3)", marginBottom: m ? 4 : 6, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                {m ? "Market Rate" : "Standard Industry Pricing"}
+              </div>
               <motion.div key={effectiveRegion + "-agency"} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-                className="text-3xl font-bold text-white line-through opacity-50">
+                style={{
+                  fontSize: m ? 11 : 24,
+                  fontWeight: 700,
+                  color: "rgba(255,255,255,0.3)",
+                  textDecoration: "line-through",
+                  wordBreak: "break-all",
+                }}>
                 {region === "loading" && !manual ? "—" : p.agency}
               </motion.div>
             </div>
           </div>
 
           {/* NovaSites */}
-          <div className="bg-card p-10 relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_rgba(0,229,255,0.5)]" />
-            <h3 className="text-2xl font-bold text-white mb-2">Custom Hand-Coded Engine</h3>
-            <p className="text-primary mb-8 font-mono text-sm">NOVASITES // ARCHITECTURE</p>
-            <ul className="space-y-4 mb-10 text-white">
-              <li className="flex items-center"><span className="text-primary mr-2">✓</span> Sub-second load times</li>
-              <li className="flex items-center"><span className="text-primary mr-2">✓</span> Zero maintenance required</li>
-              <li className="flex items-center"><span className="text-primary mr-2">✓</span> 5–10 day rapid deployment</li>
-              <li className="flex items-center"><span className="text-primary mr-2">✓</span> 100% asset ownership</li>
+          <div style={{
+            background: "rgba(0,229,255,0.02)",
+            padding: m ? "16px 14px" : "40px 40px",
+            position: "relative",
+          }}>
+            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: ACCENT, boxShadow: "0 0 10px rgba(0,229,255,0.5)" }} />
+
+            <h3 style={{
+              fontSize: m ? 11 : 20,
+              fontWeight: 800, color: "#fff",
+              margin: m ? "0 0 4px" : "0 0 8px",
+              lineHeight: 1.2,
+            }}>
+              {m ? "NovaSites" : "Custom Hand-Coded Engine"}
+            </h3>
+
+            <p style={{
+              fontSize: m ? 8 : 12,
+              color: ACCENT,
+              margin: m ? "0 0 12px" : "0 0 28px",
+              fontFamily: "monospace",
+              letterSpacing: "0.04em",
+            }}>
+              {m ? "NOVA // ARCH" : "NOVASITES // ARCHITECTURE"}
+            </p>
+
+            <ul style={{ listStyle: "none", padding: 0, margin: m ? "0 0 12px" : "0 0 32px", display: "flex", flexDirection: "column", gap: m ? 6 : 14 }}>
+              {[
+                m ? "Sub-second" : "Sub-second load times",
+                m ? "Zero maint." : "Zero maintenance required",
+                m ? "5–10 days" : "5–10 day rapid deployment",
+                m ? "100% yours" : "100% asset ownership",
+              ].map((item) => (
+                <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: m ? 5 : 8, fontSize: m ? 9 : 13, color: "#fff", lineHeight: 1.4 }}>
+                  <span style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }}>✓</span>
+                  {item}
+                </li>
+              ))}
             </ul>
-            <div className="pt-8 border-t border-border">
-              <div className="text-sm text-primary font-mono mb-1">One-Time Deployment Fee</div>
+
+            <div style={{ paddingTop: m ? 10 : 24, borderTop: "1px solid rgba(0,229,255,0.15)" }}>
+              <div style={{ fontSize: m ? 8 : 11, color: ACCENT, marginBottom: m ? 4 : 6, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                {m ? "One-Time Fee" : "One-Time Deployment Fee"}
+              </div>
               <motion.div key={effectiveRegion + "-ours"} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-                className="text-4xl font-black text-white">
+                style={{
+                  fontSize: m ? 13 : 32,
+                  fontWeight: 900,
+                  color: "#fff",
+                  wordBreak: "break-all",
+                }}>
                 {region === "loading" && !manual ? "—" : p.ours}
               </motion.div>
             </div>
           </div>
         </div>
 
-        {/* Get Quote CTA */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginTop: 48 }}>
-          <p style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: 0 }}>
+        {/* CTA */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: m ? 28 : 48 }}>
+          <p style={{ fontFamily: "monospace", fontSize: m ? 9 : 10, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: 0 }}>
             Ready to eliminate the overhead?
           </p>
-          <GetQuoteButton />
+          <GetQuoteButton compact={m} />
         </div>
       </div>
     </section>

@@ -59,9 +59,11 @@ const PILLARS = [
 function PillarCard({
   pillar,
   index,
+  isMobile,
 }: {
   pillar: (typeof PILLARS)[0];
   index: number;
+  isMobile: boolean;
 }) {
   const [hov, setHov] = useState(false);
   const [typedText, setTypedText] = useState("");
@@ -114,40 +116,17 @@ function PillarCard({
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
-      {/* Faint static background icon — fixed position, never moves */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: -10,
-          right: -10,
-          width: 110,
-          height: 110,
-          opacity: 0.045,
-          pointerEvents: "none",
-          zIndex: 0,
-          flexShrink: 0,
-        }}
-      >
+      {/* Background icon */}
+      <div style={{ position: "absolute", bottom: -10, right: -10, width: 110, height: 110, opacity: 0.045, pointerEvents: "none", zIndex: 0, flexShrink: 0 }}>
         {pillar.icon}
       </div>
 
-      {/* Traveling perimeter border on hover */}
+      {/* Traveling border */}
       {hov && dims.w > 0 && perimeter > 0 && (
-        <svg
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: dims.w,
-            height: dims.h,
-            pointerEvents: "none",
-            overflow: "visible",
-            zIndex: 1,
-          }}
-        >
+        <svg style={{ position: "absolute", inset: 0, width: dims.w, height: dims.h, pointerEvents: "none", overflow: "visible", zIndex: 1 }}>
           <motion.rect
             x={0.5} y={0.5}
-            width={dims.w - 1}
-            height={dims.h - 1}
+            width={dims.w - 1} height={dims.h - 1}
             fill="none"
             stroke="#00E5FF"
             strokeWidth={1}
@@ -160,49 +139,41 @@ function PillarCard({
       )}
 
       <div style={{ position: "relative", zIndex: 2 }}>
-        <span
-          style={{
-            display: "block",
-            fontFamily: "monospace",
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: "0.2em",
-            color: hov ? "#00E5FF" : "rgba(0,229,255,0.4)",
-            transition: "color 0.22s",
-            marginBottom: 10,
-          }}
-        >
+        {/* Card number */}
+        <span style={{
+          display: "block",
+          fontFamily: "monospace",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.2em",
+          color: hov ? "#00E5FF" : "rgba(0,229,255,0.4)",
+          transition: "color 0.22s",
+          marginBottom: isMobile ? 6 : 10,
+        }}>
           {pillar.num} ——
         </span>
 
-        <strong
-          style={{
-            display: "block",
-            fontSize: 18,
-            fontWeight: 700,
-            color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
-            marginBottom: 10,
-            transition: "color 0.2s",
-            letterSpacing: "0.01em",
-            lineHeight: 1.25,
-          }}
-        >
+        {/* Card title — clearly smaller than section h2 on mobile */}
+        <strong style={{
+          display: "block",
+          fontSize: isMobile ? 14 : 18,
+          fontWeight: 700,
+          color: hov ? "#ffffff" : "rgba(255,255,255,0.85)",
+          marginBottom: isMobile ? 6 : 10,
+          transition: "color 0.2s",
+          letterSpacing: "0.01em",
+          lineHeight: 1.25,
+        }}>
           {pillar.title}
         </strong>
 
-        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, display: "block" }}>
+        {/* Subtext */}
+        <span style={{ fontSize: isMobile ? 11 : 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, display: "block" }}>
           {pillar.subtext}
         </span>
 
         {hov && (
-          <div
-            style={{
-              fontSize: 12.5,
-              lineHeight: 1.7,
-              color: "rgba(255,255,255,0.5)",
-              marginTop: 12,
-            }}
-          >
+          <div style={{ fontSize: isMobile ? 11 : 12.5, lineHeight: 1.7, color: "rgba(255,255,255,0.5)", marginTop: 12 }}>
             {typedText}
             {typedText.length < pillar.expanded.length && (
               <span style={{ opacity: 0.5, fontFamily: "monospace" }}>▌</span>
@@ -211,34 +182,13 @@ function PillarCard({
         )}
 
         {!hov && (
-          <div
-            style={{
-              fontFamily: "monospace",
-              fontSize: 9.5,
-              color: "rgba(255,255,255,0.18)",
-              marginTop: 10,
-              letterSpacing: "0.1em",
-            }}
-          >
+          <div style={{ fontFamily: "monospace", fontSize: 9.5, color: "rgba(255,255,255,0.18)", marginTop: 10, letterSpacing: "0.1em" }}>
             [hover to expand]
           </div>
         )}
       </div>
 
-      <span
-        style={{
-          position: "absolute",
-          top: 14,
-          right: 14,
-          width: 8,
-          height: 8,
-          borderTop: "1.5px solid #00E5FF",
-          borderRight: "1.5px solid #00E5FF",
-          opacity: hov ? 0.75 : 0,
-          transition: "opacity 0.2s",
-          zIndex: 2,
-        }}
-      />
+      <span style={{ position: "absolute", top: 14, right: 14, width: 8, height: 8, borderTop: "1.5px solid #00E5FF", borderRight: "1.5px solid #00E5FF", opacity: hov ? 0.75 : 0, transition: "opacity 0.2s", zIndex: 2 }} />
     </motion.div>
   );
 }
@@ -263,16 +213,8 @@ export function WhatWeDo() {
         boxSizing: "border-box",
       }}
     >
-      <div
-        style={{
-          maxWidth: 1200,
-          width: "100%",
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: isMobile ? 32 : 48,
-        }}
-      >
+      <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", gap: isMobile ? 28 : 48 }}>
+
         {/* Label + Headline */}
         <div>
           <motion.div
@@ -282,15 +224,7 @@ export function WhatWeDo() {
             style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}
           >
             <span style={{ width: 16, height: 1, background: "#00E5FF", display: "inline-block" }} />
-            <span
-              style={{
-                fontFamily: "monospace",
-                fontSize: 10,
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "#00E5FF",
-              }}
-            >
+            <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: "#00E5FF" }}>
               Core Architecture
             </span>
           </motion.div>
@@ -301,7 +235,7 @@ export function WhatWeDo() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.04 }}
             style={{
-              fontSize: "clamp(1.5rem, 6vw, 2.4rem)",
+              fontSize: isMobile ? "clamp(1.6rem, 7vw, 2rem)" : "clamp(1.8rem, 4vw, 2.4rem)",
               fontWeight: 900,
               letterSpacing: "-0.01em",
               color: "#fff",
@@ -314,17 +248,10 @@ export function WhatWeDo() {
           </motion.h2>
         </div>
 
-        {/* Cards: row on desktop, column on mobile */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            gap: isMobile ? 0 : 24,
-            alignItems: "stretch",
-          }}
-        >
+        {/* Cards */}
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 0 : 24, alignItems: "stretch" }}>
           {PILLARS.map((p, i) => (
-            <PillarCard key={p.num} pillar={p} index={i} />
+            <PillarCard key={p.num} pillar={p} index={i} isMobile={isMobile} />
           ))}
         </div>
       </div>

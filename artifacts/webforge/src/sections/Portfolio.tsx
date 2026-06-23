@@ -46,7 +46,13 @@ const ARCHIVE_PROJECTS = [
 ];
 
 const STORAGE_KEY = "webforge_projects";
+const SLIDER_KEY  = "webforge_slider";
 const ACCENT = "#00E5FF";
+
+type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string };
+const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%" };
+function loadSliderData(): SliderData { try { const r = localStorage.getItem(SLIDER_KEY); if (r) return JSON.parse(r); } catch {} return DEFAULT_SLIDER; }
+function saveSliderData(d: SliderData) { try { localStorage.setItem(SLIDER_KEY, JSON.stringify(d)); } catch {} }
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 function loadProjects(): Project[] {
@@ -366,6 +372,20 @@ export function Portfolio() {
   const [projects, setProjects]       = useState<Project[]>(loadProjects);
   const [editMode, setEditMode]       = useState(false);
   const [activeVideo, setActiveVideo] = useState<Project | null>(null);
+  const [sliderData, setSliderData]   = useState<SliderData>(loadSliderData);
+  const [isMobile, setIsMobile]       = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  function updateSlider(key: keyof SliderData, val: string) {
+    const next = { ...sliderData, [key]: val };
+    setSliderData(next); saveSliderData(next);
+  }
 
   // Admin state
   const [isAdmin, setIsAdmin]             = useState(checkAdmin);
@@ -444,26 +464,73 @@ export function Portfolio() {
           </motion.div>
         )}
 
-        {/* ── SLIDER — Before/After Comparison (above cards) ── */}
+        {/* ── SLIDER — Before/After Comparison ── */}
         <div
           ref={sliderRef}
-          className="relative w-full h-[50vh] min-h-[340px] bg-card border border-border overflow-hidden select-none cursor-ew-resize mb-10 rounded"
+          style={{ height: isMobile ? 200 : 360 }}
+          className="relative w-full bg-card border border-border overflow-hidden select-none cursor-ew-resize mb-10 rounded"
           onMouseMove={(e) => { if (e.buttons === 1) handleSlider(e.clientX); }}
           onTouchMove={(e) => handleSlider(e.touches[0].clientX)}
           onMouseDown={(e) => handleSlider(e.clientX)}
         >
+          {/* LEGACY (right / background) */}
           <div className="absolute inset-0 bg-[#221111] flex items-center justify-center overflow-hidden">
-            <div className="opacity-20 text-destructive text-[10rem] font-black blur-sm select-none pointer-events-none transform -rotate-12">LEGACY</div>
-            <div className="absolute bottom-8 left-8 text-destructive font-mono text-sm">SPEED: 4.8s<br />CONVERSION: 1.2%</div>
-          </div>
-          <div className="absolute top-0 left-0 bottom-0 bg-[#0A1A1A] overflow-hidden border-r border-primary shadow-[2px_0_15px_rgba(0,229,255,0.3)]" style={{ width: `${sliderPos}%` }}>
-            <div className="absolute inset-0 w-[100vw] flex items-center justify-center">
-              <div className="opacity-20 text-primary text-[10rem] font-black blur-[1px] select-none pointer-events-none transform rotate-12">FORGED</div>
-              <div className="absolute bottom-8 left-8 text-primary font-mono text-sm">SPEED: 0.8s<br />CONVERSION: 6.4%</div>
+            <div style={{ fontSize: isMobile ? "4rem" : "10rem" }} className="opacity-20 text-destructive font-black blur-sm select-none pointer-events-none transform -rotate-12">LEGACY</div>
+            <div style={{ position: "absolute", bottom: isMobile ? 10 : 28, left: isMobile ? 10 : 28 }}>
+              {editMode ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,51,51,0.7)" }}>SPEED:</span>
+                    <input value={sliderData.legacySpeed} onChange={(e) => updateSlider("legacySpeed", e.target.value)}
+                      style={{ width: 48, background: "rgba(255,51,51,0.12)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 12, outline: "none" }} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,51,51,0.7)" }}>CONV:</span>
+                    <input value={sliderData.legacyConv} onChange={(e) => updateSlider("legacyConv", e.target.value)}
+                      style={{ width: 48, background: "rgba(255,51,51,0.12)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 12, outline: "none" }} />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: "#FF3333", lineHeight: 1.6 }}>
+                  SPEED: {sliderData.legacySpeed}<br />CONVERSION: {sliderData.legacyConv}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* FORGED (left / clipped) */}
+          <div className="absolute top-0 left-0 bottom-0 bg-[#0A1A1A] overflow-hidden border-r border-primary shadow-[2px_0_15px_rgba(0,229,255,0.3)]" style={{ width: `${sliderPos}%` }}>
+            <div className="absolute inset-0 flex items-center justify-center" style={{ width: "100vw" }}>
+              <div style={{ fontSize: isMobile ? "4rem" : "10rem" }} className="opacity-20 text-primary font-black blur-[1px] select-none pointer-events-none transform rotate-12">FORGED</div>
+              <div style={{ position: "absolute", bottom: isMobile ? 10 : 28, left: isMobile ? 10 : 28 }}>
+                {editMode ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(0,229,255,0.7)" }}>SPEED:</span>
+                      <input value={sliderData.forgedSpeed} onChange={(e) => updateSlider("forgedSpeed", e.target.value)}
+                        style={{ width: 48, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 12, outline: "none" }} />
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(0,229,255,0.7)" }}>CONV:</span>
+                      <input value={sliderData.forgedConv} onChange={(e) => updateSlider("forgedConv", e.target.value)}
+                        style={{ width: 48, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 12, outline: "none" }} />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: ACCENT, lineHeight: 1.6 }}>
+                    SPEED: {sliderData.forgedSpeed}<br />CONVERSION: {sliderData.forgedConv}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Drag handle */}
           <div className="absolute top-0 bottom-0 w-1 bg-primary -ml-[2px] flex items-center justify-center pointer-events-none" style={{ left: `${sliderPos}%` }}>
-            <div className="bg-background border border-primary text-primary px-3 py-1 rounded-full text-xs font-mono shadow-[0_0_10px_rgba(0,229,255,0.5)] whitespace-nowrap">◄ SLIDE TO COMPARE ►</div>
+            <div className="bg-background border border-primary text-primary px-3 py-1 rounded-full text-xs font-mono shadow-[0_0_10px_rgba(0,229,255,0.5)] whitespace-nowrap"
+              style={{ fontSize: isMobile ? 8 : undefined, padding: isMobile ? "3px 8px" : undefined }}>
+              ◄ SLIDE ►
+            </div>
           </div>
         </div>
 

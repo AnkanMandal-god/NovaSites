@@ -22,8 +22,8 @@ const IconTrend  = ({ size }: { size?: number }) => <TIcon size={size}><polyline
 // ─── Comet card wrapper ───────────────────────────────────────────────────────
 // Adds a traveling comet around the card's border perimeter — non-destructive overlay.
 function CometCard({
-  color, children, className,
-}: { color: string; children: React.ReactNode; className?: string }) {
+  color, children, className, style,
+}: { color: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const ref  = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
@@ -41,7 +41,7 @@ function CometCard({
   const COMET  = 90; // visible segment length in px
 
   return (
-    <div ref={ref} className={`relative ${className ?? ""}`}>
+    <div ref={ref} className={`relative ${className ?? ""}`} style={style}>
       {children}
       {perim > 0 && (
         <svg
@@ -351,29 +351,44 @@ function ChartSection({ color, path, glow }: { color: string; path: string; glow
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 export function Metrics() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const circleSize = isMobile ? 90 : 192;
+  const cardPad    = isMobile ? "12px 10px 16px" : "32px 32px 28px";
+
   return (
     <section className="py-24 bg-background">
       <div className="container mx-auto px-6">
 
-        {/* Header — untouched */}
+        {/* Header */}
         <div className="text-center mb-16">
           <div className="text-primary font-mono text-sm mb-4">THE DIFFERENCE WE MAKE</div>
-          <h2 className="text-4xl md:text-6xl mx-auto max-w-4xl text-white mb-6 !normal-case">
+          <h2 style={{ fontSize: isMobile ? "clamp(1.6rem, 7vw, 2.2rem)" : "clamp(2rem, 5vw, 3.5rem)" }}
+            className="mx-auto max-w-4xl text-white mb-6 !normal-case">
             The Standard<br />Has Been Raised.
           </h2>
-          <p className="text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-muted-foreground max-w-3xl mx-auto" style={{ fontSize: isMobile ? 12 : undefined }}>
             Traditional templates hold businesses back with bloat and slow load times. We engineer precise digital assets built for speed and lead generation.
           </p>
         </div>
 
-        {/* Speedometer cards with comet borders */}
-        <div className="grid md:grid-cols-2 gap-6 mb-3">
+        {/* Speedometer cards — always 2-col */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: isMobile ? 10 : 24, marginBottom: 12 }}>
 
           {/* Average Template Site */}
-          <CometCard color="#FF3333" className="bg-card border border-destructive/50 rounded-md p-8 flex flex-col items-center">
-            <h3 className="text-xl font-bold text-white mb-8">Average Template Site</h3>
-            <div className="w-48 h-48 relative mb-6">
-              <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+          <CometCard color="#FF3333" className="bg-card border border-destructive/50 rounded-md flex flex-col items-center" style={{ padding: cardPad }}>
+            <h3 style={{ fontSize: isMobile ? 11 : 20, fontWeight: 700, color: "#fff", marginBottom: isMobile ? 10 : 28, textAlign: "center", lineHeight: 1.3 }}>
+              {isMobile ? "Template Site" : "Average Template Site"}
+            </h3>
+            <div style={{ width: circleSize, height: circleSize, position: "relative", marginBottom: isMobile ? 8 : 24, flexShrink: 0 }}>
+              <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
                 <circle cx="50" cy="50" r="40" stroke="#2A2A2A" strokeWidth="8" fill="none" />
                 <motion.circle
                   initial={{ strokeDasharray: "0 251.2" }}
@@ -383,29 +398,27 @@ export function Metrics() {
                   cx="50" cy="50" r="40" stroke="#FF3333" strokeWidth="8" fill="none"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center flex-col gap-0.5">
-                <span className="font-mono uppercase text-center leading-tight"
-                  style={{ fontSize: 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
-                  Google PageSpeed<br />Score
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontFamily: "monospace", textTransform: "uppercase", textAlign: "center", lineHeight: 1.2, fontSize: isMobile ? 5 : 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+                  {isMobile ? "Score" : "Google PageSpeed\nScore"}
                 </span>
-                <span className="text-2xl font-black text-destructive">24</span>
-                <span className="text-xs text-muted-foreground uppercase">Failing</span>
+                <span style={{ fontSize: isMobile ? 16 : 24, fontWeight: 900, color: "#FF3333" }}>24</span>
+                <span style={{ fontSize: isMobile ? 7 : 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Failing</span>
               </div>
             </div>
-            <ChartSection
-              color="#FF3333" glow="rgba(255,51,51,0.5)"
-              path="M 0 5 C 6 5 13 6 19 33 C 24 38 32 38 48 38 L 75 39 L 100 39"
-            />
-            <p className="text-sm text-muted-foreground text-center">
-              Stagnant user retention due to delayed page rendering.
+            {!isMobile && <ChartSection color="#FF3333" glow="rgba(255,51,51,0.5)" path="M 0 5 C 6 5 13 6 19 33 C 24 38 32 38 48 38 L 75 39 L 100 39" />}
+            <p style={{ fontSize: isMobile ? 10 : 13, color: "rgba(255,255,255,0.45)", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
+              {isMobile ? "High load times lose visitors." : "Stagnant user retention due to delayed page rendering."}
             </p>
           </CometCard>
 
-          {/* WebForge Engineered Site */}
-          <CometCard color="#00E5FF" className="bg-card border border-primary shadow-[0_0_15px_rgba(0,229,255,0.1)] rounded-md p-8 flex flex-col items-center">
-            <h3 className="text-xl font-bold text-white mb-8">NovaSites Engineered Site</h3>
-            <div className="w-48 h-48 relative mb-6">
-              <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+          {/* NovaSites Engineered Site */}
+          <CometCard color="#00E5FF" className="bg-card border border-primary rounded-md flex flex-col items-center" style={{ padding: cardPad, boxShadow: "0 0 15px rgba(0,229,255,0.08)" }}>
+            <h3 style={{ fontSize: isMobile ? 11 : 20, fontWeight: 700, color: "#fff", marginBottom: isMobile ? 10 : 28, textAlign: "center", lineHeight: 1.3 }}>
+              {isMobile ? "NovaSites" : "NovaSites Engineered Site"}
+            </h3>
+            <div style={{ width: circleSize, height: circleSize, position: "relative", marginBottom: isMobile ? 8 : 24, flexShrink: 0 }}>
+              <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
                 <circle cx="50" cy="50" r="40" stroke="#2A2A2A" strokeWidth="8" fill="none" />
                 <motion.circle
                   initial={{ strokeDasharray: "0 251.2" }}
@@ -415,21 +428,17 @@ export function Metrics() {
                   cx="50" cy="50" r="40" stroke="#00E5FF" strokeWidth="8" fill="none"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center flex-col gap-0.5">
-                <span className="font-mono uppercase text-center leading-tight"
-                  style={{ fontSize: 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
-                  Google PageSpeed<br />Score
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontFamily: "monospace", textTransform: "uppercase", textAlign: "center", lineHeight: 1.2, fontSize: isMobile ? 5 : 8, letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+                  {isMobile ? "Score" : "Google PageSpeed\nScore"}
                 </span>
-                <span className="text-2xl font-black text-primary">99</span>
-                <span className="text-xs text-muted-foreground uppercase">Excellent</span>
+                <span style={{ fontSize: isMobile ? 16 : 24, fontWeight: 900, color: "#00E5FF" }}>99</span>
+                <span style={{ fontSize: isMobile ? 7 : 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Excellent</span>
               </div>
             </div>
-            <ChartSection
-              color="#00E5FF" glow="rgba(0,229,255,0.8)"
-              path="M 0 6 C 15 5 32 8 50 6 C 68 4 82 5 100 6"
-            />
-            <p className="text-sm text-white text-center">
-              Sub-second loading speeds resulting in higher inbound call volume.
+            {!isMobile && <ChartSection color="#00E5FF" glow="rgba(0,229,255,0.8)" path="M 0 6 C 15 5 32 8 50 6 C 68 4 82 5 100 6" />}
+            <p style={{ fontSize: isMobile ? 10 : 13, color: isMobile ? "rgba(255,255,255,0.7)" : "#fff", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
+              {isMobile ? "Sub-second loads, more leads." : "Sub-second loading speeds resulting in higher inbound call volume."}
             </p>
           </CometCard>
 
