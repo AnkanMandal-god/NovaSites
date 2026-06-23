@@ -34,7 +34,7 @@ externalPort = 3000
 [userenv]
 
 [userenv.shared]
-VITE_ADMIN_HASH = "81257036b7c8c2af0b9966f2544a4ec1e530ea6cf5470be05bd2bdbb20c9aef1"
+VITE_ADMIN_HASH = "87dd62160199195c4cf7e043dbcccbc3d7cfd400f278c3f595743239f95f5340"
 
 [nix]
 channel = "stable-25_05"
