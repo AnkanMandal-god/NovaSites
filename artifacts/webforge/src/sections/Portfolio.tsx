@@ -48,6 +48,7 @@ const ARCHIVE_PROJECTS = [
 const STORAGE_KEY = "webforge_projects";
 const SLIDER_KEY  = "webforge_slider";
 const ACCENT = "#00E5FF";
+const REEL_VIDEO_ID = "4DYu-T8koNQ";
 
 type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string; legacyImg: string; forgedImg: string };
 const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%", legacyImg: "", forgedImg: "" };
@@ -251,8 +252,8 @@ function AdminModal({ onSuccess, onClose }: { onSuccess: () => void; onClose: ()
 }
 
 // ─── Project window card ──────────────────────────────────────────────────────
-function ProjectWindow({ project, index, editMode, onChange, onDelete, onVideoClick }: {
-  project: Project; index: number; editMode: boolean;
+function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, onVideoClick }: {
+  project: Project; index: number; editMode: boolean; inView: boolean;
   onChange: (p: Project) => void; onDelete: () => void;
   onVideoClick: () => void;
 }) {
@@ -288,8 +289,19 @@ function ProjectWindow({ project, index, editMode, onChange, onDelete, onVideoCl
         onClick={onVideoClick}
         style={{ position: "relative", height: 140, background: "#050505", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}
       >
+        {/* Muted autoplay reel — visible when portfolio section is in view */}
+        {inView && (
+          <iframe
+            src={`https://www.youtube.com/embed/${REEL_VIDEO_ID}?autoplay=1&mute=1&loop=1&playlist=${REEL_VIDEO_ID}&controls=0&rel=0&modestbranding=1&playsinline=1`}
+            allow="autoplay; fullscreen"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", pointerEvents: "none", transform: "scale(1.04)" }}
+            title="WebForge reel"
+          />
+        )}
+        {/* Dark overlay so the play button stays legible */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.42)", pointerEvents: "none" }} />
         {/* Subtle grid pattern */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px", pointerEvents: "none" }} />
+        {!inView && <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px", pointerEvents: "none" }} />}
         {/* Play icon */}
         <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, transition: "transform 0.2s" }}>
           <div style={{ width: 42, height: 42, borderRadius: "50%", border: `1.5px solid ${ACCENT}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 18px rgba(0,229,255,0.25)" }}>
@@ -298,7 +310,7 @@ function ProjectWindow({ project, index, editMode, onChange, onDelete, onVideoCl
             </svg>
           </div>
           <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
-            {project.videoUrl ? "CLICK TO PREVIEW" : "VIDEO PREVIEW"}
+            CLICK TO PREVIEW
           </span>
         </div>
         {/* Video URL field in edit mode */}
@@ -368,18 +380,31 @@ function ProjectWindow({ project, index, editMode, onChange, onDelete, onVideoCl
 export function Portfolio() {
   const [sliderPos, setSliderPos]     = useState(50);
   const sliderRef                     = useRef<HTMLDivElement>(null);
+  const sectionRef                    = useRef<HTMLElement>(null);
   const [isExpanded, setIsExpanded]   = useState(false);
   const [projects, setProjects]       = useState<Project[]>(loadProjects);
   const [editMode, setEditMode]       = useState(false);
   const [activeVideo, setActiveVideo] = useState<Project | null>(null);
   const [sliderData, setSliderData]   = useState<SliderData>(loadSliderData);
   const [isMobile, setIsMobile]       = useState(false);
+  const [inView, setInView]           = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   function updateSlider(key: keyof SliderData, val: string) {
@@ -428,7 +453,7 @@ export function Portfolio() {
   }
 
   return (
-    <section id="portfolio" className="py-24 bg-background">
+    <section id="portfolio" className="py-24 bg-background" ref={sectionRef}>
       <div className="container mx-auto px-6">
 
         {/* Header */}
@@ -584,6 +609,7 @@ export function Portfolio() {
           {projects.map((project, i) => (
             <ProjectWindow
               key={project.id} project={project} index={i} editMode={editMode && isAdmin}
+              inView={inView}
               onChange={(u) => updateProject(i, u)}
               onDelete={() => deleteProject(i)}
               onVideoClick={() => setActiveVideo(project)}
