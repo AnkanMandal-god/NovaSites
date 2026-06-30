@@ -1,6 +1,6 @@
-# [Project name]
+# WebForge
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A marketing landing page for a web development agency, built with React + Vite, backed by an Express 5 API server and PostgreSQL.
 
 ## Run & Operate
 
@@ -13,7 +13,7 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
+- pnpm workspaces, Node.js 20, TypeScript 5.9
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
