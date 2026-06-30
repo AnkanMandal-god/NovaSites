@@ -22,19 +22,19 @@ const DEFAULT_PROJECTS: Project[] = [
     id: "1", client: "Apex Roofing Co.", url: "apexroofing.com", industry: "Home Services",
     description: "Full rebuild from a sluggish WordPress template to a hand-coded asset. Eliminated 14 redundant plugins, restructured local SEO, and redesigned the quote form flow for maximum lead capture.",
     prevSpeed: "3.9s", newSpeed: "0.7s", prevConv: "1.8%", newConv: "5.2%",
-    tags: ["Local SEO", "Lead Gen", "Hand-coded"], videoUrl: "",
+    tags: ["Local SEO", "Lead Gen", "Hand-coded"], videoUrl: "https://www.youtube.com/watch?v=4DYu-T8koNQ",
   },
   {
     id: "2", client: "Cascade HVAC", url: "cascadehvac.com", industry: "HVAC & Climate Control",
     description: "Stripped a 22-plugin WordPress site down to zero dependencies. Rebuilt with semantic HTML, deferred asset loading, and structured data markup. Now ranking page one for 8 target keywords.",
     prevSpeed: "5.2s", newSpeed: "0.6s", prevConv: "0.9%", newConv: "4.8%",
-    tags: ["SEO Overhaul", "Plugin Elimination", "Structured Data"], videoUrl: "",
+    tags: ["SEO Overhaul", "Plugin Elimination", "Structured Data"], videoUrl: "https://www.youtube.com/watch?v=egDYXqQ-YX0",
   },
   {
     id: "3", client: "Sentinel Law Group", url: "sentinellaw.com", industry: "Legal Services",
     description: "Trust and authority architecture for a boutique law firm. High-contrast design with precise CTA placement, WCAG-compliant markup, and a conversion-optimised consultation booking flow.",
     prevSpeed: "4.1s", newSpeed: "0.9s", prevConv: "2.1%", newConv: "7.1%",
-    tags: ["Conversion Design", "Accessibility", "Consultation Flow"], videoUrl: "",
+    tags: ["Conversion Design", "Accessibility", "Consultation Flow"], videoUrl: "https://www.youtube.com/watch?v=ezQBGeX8_kk",
   },
 ];
 
@@ -45,10 +45,14 @@ const ARCHIVE_PROJECTS = [
   { name: "TerraForm Landscaping", prevSpeed: "3.8s", newSpeed: "0.6s", prevConv: "2.0%", newConv: "5.9%" },
 ];
 
-const STORAGE_KEY = "webforge_projects";
+const STORAGE_KEY = "webforge_projects_v2";
 const SLIDER_KEY  = "webforge_slider";
 const ACCENT = "#00E5FF";
-const REEL_VIDEO_ID = "4DYu-T8koNQ";
+
+function getYoutubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
 
 type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string; legacyImg: string; forgedImg: string };
 const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%", legacyImg: "", forgedImg: "" };
@@ -258,18 +262,25 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
   onVideoClick: () => void;
 }) {
   const [hov, setHov] = useState(false);
+  const videoId = getYoutubeId(project.videoUrl);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
+      transition={{ duration: 0.45, delay: index * 0.08 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ border: `1px solid ${hov ? "rgba(0,229,255,0.25)" : "rgba(255,255,255,0.08)"}`, borderRadius: 8, overflow: "hidden", background: "rgba(12,12,12,0.98)", transition: "border-color 0.2s", display: "flex", flexDirection: "column" }}
+      style={{
+        border: `1px solid ${hov ? "rgba(0,229,255,0.25)" : "rgba(255,255,255,0.08)"}`,
+        borderRadius: 8, overflow: "hidden",
+        background: "rgba(12,12,12,0.98)",
+        transition: "border-color 0.2s",
+        display: "flex", flexDirection: "column",
+      }}
     >
-      {/* Window chrome */}
+      {/* Window chrome — full width */}
       <div style={{ background: "#111", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "9px 14px", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F57", display: "inline-block", flexShrink: 0 }} />
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFBD2E", display: "inline-block", flexShrink: 0 }} />
@@ -284,92 +295,104 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
         )}
       </div>
 
-      {/* Video preview */}
-      <div
-        onClick={onVideoClick}
-        style={{ position: "relative", height: 140, background: "#050505", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}
-      >
-        {/* Muted autoplay reel — visible when portfolio section is in view */}
-        {inView && (
-          <iframe
-            src={`https://www.youtube.com/embed/${REEL_VIDEO_ID}?autoplay=1&mute=1&loop=1&playlist=${REEL_VIDEO_ID}&controls=0&rel=0&modestbranding=1&playsinline=1`}
-            allow="autoplay; fullscreen"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", pointerEvents: "none", transform: "scale(1.04)" }}
-            title="WebForge reel"
-          />
-        )}
-        {/* Dark overlay so the play button stays legible */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.42)", pointerEvents: "none" }} />
-        {/* Subtle grid pattern */}
-        {!inView && <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px", pointerEvents: "none" }} />}
-        {/* Play icon */}
-        <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, transition: "transform 0.2s" }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", border: `1.5px solid ${ACCENT}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 18px rgba(0,229,255,0.25)" }}>
-            <svg width={14} height={14} viewBox="0 0 24 24" fill={ACCENT} style={{ marginLeft: 2 }}>
-              <polygon points="5,3 19,12 5,21" />
-            </svg>
-          </div>
-          <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
-            CLICK TO PREVIEW
-          </span>
-        </div>
-        {/* Video URL field in edit mode */}
-        {editMode && (
-          <div style={{ position: "absolute", bottom: 8, left: 10, right: 10 }} onClick={(e) => e.stopPropagation()}>
-            <input
-              value={project.videoUrl}
-              placeholder="YouTube or video URL"
-              onChange={(e) => onChange({ ...project, videoUrl: e.target.value })}
-              style={{ width: "100%", background: "rgba(0,0,0,0.7)", border: "1px solid rgba(0,229,255,0.35)", borderRadius: 3, padding: "4px 8px", color: "rgba(255,255,255,0.7)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }}
+      {/* Body — horizontal split */}
+      <div style={{ display: "flex", flex: 1, minHeight: 300 }}>
+
+        {/* ── LEFT: video (50%) ── */}
+        <div
+          onClick={onVideoClick}
+          style={{ position: "relative", width: "50%", flexShrink: 0, background: "#050505", cursor: "pointer", overflow: "hidden", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          {/* Muted autoplay — each card plays its own video */}
+          {inView && videoId && (
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&rel=0&modestbranding=1&playsinline=1`}
+              allow="autoplay; fullscreen"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", pointerEvents: "none", transform: "scale(1.04)" }}
+              title={`${project.client} reel`}
             />
-          </div>
-        )}
-      </div>
-
-      {/* Hero strip */}
-      <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 5 }}>
-          {editMode
-            ? <input value={project.industry} placeholder="Industry" onChange={(e) => onChange({ ...project, industry: e.target.value })} style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 3, padding: "1px 6px", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 9, outline: "none" }} />
-            : project.industry}
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 12 }}>
-          {editMode
-            ? <input value={project.client} placeholder="Client Name" onChange={(e) => onChange({ ...project, client: e.target.value })} style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.22)", borderRadius: 3, padding: "2px 8px", color: "#fff", fontWeight: 800, fontSize: 16, width: "100%", outline: "none" }} />
-            : project.client}
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {([["PAGE SPEED", "prevSpeed", "newSpeed"], ["CONVERSION", "prevConv", "newConv"]] as const).map(([label, pk, nk]) => (
-            <div key={label}>
-              <div style={{ fontFamily: "monospace", fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.28)", marginBottom: 3 }}>{label}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                {editMode
-                  ? <>
-                      <input value={project[pk]} placeholder="0s" onChange={(e) => onChange({ ...project, [pk]: e.target.value })} style={{ width: 38, background: "rgba(255,51,51,0.08)", border: "1px solid rgba(255,51,51,0.25)", borderRadius: 3, padding: "1px 4px", color: "#FF3333", fontFamily: "monospace", fontSize: 10, outline: "none", textDecoration: "line-through" }} />
-                      <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 9 }}>►</span>
-                      <input value={project[nk]} placeholder="0s" onChange={(e) => onChange({ ...project, [nk]: e.target.value })} style={{ width: 42, background: "rgba(0,229,255,0.07)", border: "1px solid rgba(0,229,255,0.25)", borderRadius: 3, padding: "1px 4px", color: ACCENT, fontFamily: "monospace", fontSize: 13, fontWeight: 700, outline: "none" }} />
-                    </>
-                  : <>
-                      <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.28)", textDecoration: "line-through" }}>{project[pk]}</span>
-                      <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: ACCENT }}>► {project[nk]}</span>
-                    </>}
-              </div>
+          )}
+          {/* Fallback grid pattern when no video / not in view */}
+          {(!inView || !videoId) && (
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+          )}
+          {/* Dark overlay */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.38)", pointerEvents: "none" }} />
+          {/* Play button */}
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, zIndex: 1 }}>
+            <div style={{ width: 46, height: 46, borderRadius: "50%", border: `1.5px solid ${ACCENT}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(0,229,255,0.3)", background: "rgba(0,0,0,0.4)" }}>
+              <svg width={15} height={15} viewBox="0 0 24 24" fill={ACCENT} style={{ marginLeft: 2 }}>
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
             </div>
-          ))}
+            <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
+              CLICK TO PREVIEW
+            </span>
+          </div>
+          {/* Video URL input — edit mode */}
+          {editMode && (
+            <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
+              <input
+                value={project.videoUrl}
+                placeholder="YouTube or video URL"
+                onChange={(e) => onChange({ ...project, videoUrl: e.target.value })}
+                style={{ width: "100%", background: "rgba(0,0,0,0.75)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "5px 9px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Description + tags */}
-      <div style={{ padding: "14px 18px 16px", flex: 1 }}>
-        {editMode
-          ? <textarea value={project.description} placeholder="Project description..." rows={3} onChange={(e) => onChange({ ...project, description: e.target.value })} style={{ width: "100%", background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 4, padding: "7px 10px", color: "rgba(255,255,255,0.58)", fontSize: 12, lineHeight: 1.7, resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-          : <p style={{ fontSize: 12.5, lineHeight: 1.75, color: "rgba(255,255,255,0.5)", margin: 0 }}>{project.description}</p>}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 12 }}>
-          {editMode
-            ? <input value={project.tags.join(", ")} placeholder="Tag 1, Tag 2" onChange={(e) => onChange({ ...project, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })} style={{ flex: 1, background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 3, padding: "3px 8px", color: "rgba(255,255,255,0.45)", fontSize: 10.5, outline: "none", fontFamily: "monospace" }} />
-            : project.tags.map((tag) => (
-                <span key={tag} style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.07em", padding: "3px 7px", borderRadius: 3, border: "1px solid rgba(0,229,255,0.18)", color: "rgba(0,229,255,0.65)", background: "rgba(0,229,255,0.03)" }}>{tag}</span>
+        {/* ── RIGHT: details (50%) ── */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+          {/* Client + industry */}
+          <div style={{ padding: "20px 22px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>
+              {editMode
+                ? <input value={project.industry} placeholder="Industry" onChange={(e) => onChange({ ...project, industry: e.target.value })} style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 3, padding: "1px 6px", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", fontSize: 9, outline: "none" }} />
+                : project.industry}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 14 }}>
+              {editMode
+                ? <input value={project.client} placeholder="Client Name" onChange={(e) => onChange({ ...project, client: e.target.value })} style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.22)", borderRadius: 3, padding: "2px 8px", color: "#fff", fontWeight: 800, fontSize: 18, width: "100%", outline: "none" }} />
+                : project.client}
+            </div>
+            {/* Metrics */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {([["PAGE SPEED", "prevSpeed", "newSpeed"], ["CONVERSION", "prevConv", "newConv"]] as const).map(([label, pk, nk]) => (
+                <div key={label}>
+                  <div style={{ fontFamily: "monospace", fontSize: 8, letterSpacing: "0.14em", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>{label}</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                    {editMode
+                      ? <>
+                          <input value={project[pk]} placeholder="0s" onChange={(e) => onChange({ ...project, [pk]: e.target.value })} style={{ width: 38, background: "rgba(255,51,51,0.08)", border: "1px solid rgba(255,51,51,0.25)", borderRadius: 3, padding: "1px 4px", color: "#FF3333", fontFamily: "monospace", fontSize: 10, outline: "none", textDecoration: "line-through" }} />
+                          <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 9 }}>►</span>
+                          <input value={project[nk]} placeholder="0s" onChange={(e) => onChange({ ...project, [nk]: e.target.value })} style={{ width: 42, background: "rgba(0,229,255,0.07)", border: "1px solid rgba(0,229,255,0.25)", borderRadius: 3, padding: "1px 4px", color: ACCENT, fontFamily: "monospace", fontSize: 13, fontWeight: 700, outline: "none" }} />
+                        </>
+                      : <>
+                          <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.28)", textDecoration: "line-through" }}>{project[pk]}</span>
+                          <span style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 700, color: ACCENT }}>► {project[nk]}</span>
+                        </>}
+                  </div>
+                </div>
               ))}
+            </div>
+          </div>
+
+          {/* Description + tags */}
+          <div style={{ padding: "16px 22px 20px", flex: 1 }}>
+            {editMode
+              ? <textarea value={project.description} placeholder="Project description..." rows={4} onChange={(e) => onChange({ ...project, description: e.target.value })} style={{ width: "100%", background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 4, padding: "8px 10px", color: "rgba(255,255,255,0.58)", fontSize: 12, lineHeight: 1.7, resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+              : <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 14px" }}>{project.description}</p>}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+              {editMode
+                ? <input value={project.tags.join(", ")} placeholder="Tag 1, Tag 2" onChange={(e) => onChange({ ...project, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })} style={{ flex: 1, background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 3, padding: "3px 8px", color: "rgba(255,255,255,0.45)", fontSize: 10.5, outline: "none", fontFamily: "monospace" }} />
+                : project.tags.map((tag) => (
+                    <span key={tag} style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.07em", padding: "3px 8px", borderRadius: 3, border: "1px solid rgba(0,229,255,0.18)", color: "rgba(0,229,255,0.65)", background: "rgba(0,229,255,0.03)" }}>{tag}</span>
+                  ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </motion.div>
@@ -605,7 +628,7 @@ export function Portfolio() {
         </div>
 
         {/* ── Project Windows ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, marginBottom: 32 }}>
           {projects.map((project, i) => (
             <ProjectWindow
               key={project.id} project={project} index={i} editMode={editMode && isAdmin}
