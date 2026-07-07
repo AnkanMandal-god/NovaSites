@@ -59,7 +59,6 @@ const DEFAULT_ARCHIVE_PROJECTS: Project[] = [
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const STORAGE_KEY         = "webforge_projects_v3";
 const ARCHIVE_STORAGE_KEY = "webforge_archive_v1";
-const SLIDER_KEY          = "webforge_slider";
 const ACCENT = "#00E5FF";
 
 function loadProjects(): Project[] {
@@ -92,11 +91,7 @@ const CUT = 14; // px corner cut size
 const cutCorners = `polygon(0 ${CUT}px, ${CUT}px 0, calc(100% - ${CUT}px) 0, 100% ${CUT}px, 100% calc(100% - ${CUT}px), calc(100% - ${CUT}px) 100%, ${CUT}px 100%, 0 calc(100% - ${CUT}px))`;
 const cutCornersInner = `polygon(0 ${CUT - 1}px, ${CUT - 1}px 0, calc(100% - ${CUT - 1}px) 0, 100% ${CUT - 1}px, 100% calc(100% - ${CUT - 1}px), calc(100% - ${CUT - 1}px) 100%, ${CUT - 1}px 100%, 0 calc(100% - ${CUT - 1}px))`;
 
-// ─── Slider data ──────────────────────────────────────────────────────────────
-type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string; legacyImg: string; forgedImg: string };
-const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%", legacyImg: "", forgedImg: "" };
-function loadSliderData(): SliderData { try { const r = localStorage.getItem(SLIDER_KEY); if (r) return JSON.parse(r); } catch {} return DEFAULT_SLIDER; }
-function saveSliderData(d: SliderData) { try { localStorage.setItem(SLIDER_KEY, JSON.stringify(d)); } catch {} }
+
 
 // ─── Project Detail Modal ─────────────────────────────────────────────────────
 function ProjectDetailModal({
@@ -574,14 +569,11 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
 
 // ─── Main Portfolio section ───────────────────────────────────────────────────
 export function Portfolio() {
-  const [sliderPos, setSliderPos]   = useState(50);
-  const sliderRef                   = useRef<HTMLDivElement>(null);
   const sectionRef                  = useRef<HTMLElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [projects, setProjects]     = useState<Project[]>(loadProjects);
   const [archiveProjects, setArchiveProjects] = useState<Project[]>(loadArchiveProjects);
   const [editMode, setEditMode]     = useState(false);
-  const [sliderData, setSliderData] = useState<SliderData>(loadSliderData);
   const [isMobile, setIsMobile]     = useState(false);
   const [inView, setInView]         = useState(false);
 
@@ -606,11 +598,6 @@ export function Portfolio() {
     return () => obs.disconnect();
   }, []);
 
-  function updateSlider(key: keyof SliderData, val: string) {
-    const next = { ...sliderData, [key]: val };
-    setSliderData(next); saveSliderData(next);
-  }
-
   // Admin
   const [isAdmin, setIsAdmin]               = useState(checkAdmin);
   const [showAdminModal, setShowAdminModal] = useState(false);
@@ -625,13 +612,6 @@ export function Portfolio() {
       clickCount.current = 0;
       if (isAdmin) { logout(); setIsAdmin(false); setEditMode(false); }
       else setShowAdminModal(true);
-    }
-  };
-
-  const handleSlider = (clientX: number) => {
-    if (sliderRef.current) {
-      const rect = sliderRef.current.getBoundingClientRect();
-      setSliderPos(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
     }
   };
 
@@ -705,99 +685,6 @@ export function Portfolio() {
             // EDIT MODE — fields are editable, changes persist in your browser.
           </motion.div>
         )}
-
-        {/* ── SLIDER ── */}
-        <div
-          ref={sliderRef}
-          style={{ height: isMobile ? 200 : 360 }}
-          className="relative w-full bg-card border border-border overflow-hidden select-none cursor-ew-resize mb-10 rounded"
-          onMouseMove={(e) => { if (e.buttons === 1) handleSlider(e.clientX); }}
-          onTouchMove={(e) => handleSlider(e.touches[0].clientX)}
-          onMouseDown={(e) => handleSlider(e.clientX)}
-        >
-          {/* LEGACY */}
-          <div style={{ position: "absolute", inset: 0, background: "#221111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            {sliderData.legacyImg ? (
-              <img src={sliderData.legacyImg} alt="Before" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: 0.85 }} />
-            ) : (
-              <div style={{ fontSize: isMobile ? "4rem" : "10rem", opacity: 0.2, color: "#FF3333", fontWeight: 900, filter: "blur(2px)", userSelect: "none", transform: "rotate(-12deg)" }}>LEGACY</div>
-            )}
-            <div style={{ position: "absolute", bottom: isMobile ? 8 : 20, left: isMobile ? 8 : 20 }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ background: "rgba(0,0,0,0.72)", borderRadius: 5, padding: isMobile ? "6px 8px" : "10px 14px", display: "flex", flexDirection: "column", gap: 5, backdropFilter: "blur(4px)", border: "1px solid rgba(255,51,51,0.3)" }}>
-                {editMode ? (
-                  <>
-                    <div style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,51,51,0.7)", letterSpacing: "0.12em", marginBottom: 2 }}>BEFORE (OLD SITE)</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>SPEED</span>
-                      <input value={sliderData.legacySpeed} onChange={(e) => updateSlider("legacySpeed", e.target.value)} style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>CONV</span>
-                      <input value={sliderData.legacyConv} onChange={(e) => updateSlider("legacyConv", e.target.value)} style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 8 : 10, color: "rgba(255,51,51,0.65)", letterSpacing: "0.1em" }}>BEFORE</div>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: "#FF3333", lineHeight: 1.6 }}>{sliderData.legacySpeed}<br />{sliderData.legacyConv} conv</div>
-                  </>
-                )}
-              </div>
-            </div>
-            {editMode && (
-              <div style={{ position: "absolute", top: 10, left: 10, right: "55%", zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ fontFamily: "monospace", fontSize: 8, color: "rgba(255,51,51,0.6)", marginBottom: 3, letterSpacing: "0.1em" }}>BEFORE SCREENSHOT URL</div>
-                <input value={sliderData.legacyImg} onChange={(e) => updateSlider("legacyImg", e.target.value)} placeholder="https://i.imgur.com/... or any image URL" style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,51,51,0.45)", borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }} />
-              </div>
-            )}
-          </div>
-
-          {/* FORGED */}
-          <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${sliderPos}%`, background: "#0A1A1A", overflow: "hidden", borderRight: `2px solid ${ACCENT}`, boxShadow: "2px 0 15px rgba(0,229,255,0.3)" }}>
-            <div style={{ position: "absolute", inset: 0, width: "100vw", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {sliderData.forgedImg ? (
-                <img src={sliderData.forgedImg} alt="After" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-              ) : (
-                <div style={{ fontSize: isMobile ? "4rem" : "10rem", opacity: 0.2, color: ACCENT, fontWeight: 900, filter: "blur(1px)", userSelect: "none", transform: "rotate(12deg)" }}>FORGED</div>
-              )}
-            </div>
-            <div style={{ position: "absolute", bottom: isMobile ? 8 : 20, left: isMobile ? 8 : 20, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ background: "rgba(0,0,0,0.72)", borderRadius: 5, padding: isMobile ? "6px 8px" : "10px 14px", display: "flex", flexDirection: "column", gap: 5, backdropFilter: "blur(4px)", border: `1px solid rgba(0,229,255,0.3)` }}>
-                {editMode ? (
-                  <>
-                    <div style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(0,229,255,0.7)", letterSpacing: "0.12em", marginBottom: 2 }}>AFTER (NOVASITES)</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>SPEED</span>
-                      <input value={sliderData.forgedSpeed} onChange={(e) => updateSlider("forgedSpeed", e.target.value)} style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>CONV</span>
-                      <input value={sliderData.forgedConv} onChange={(e) => updateSlider("forgedConv", e.target.value)} style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 8 : 10, color: "rgba(0,229,255,0.65)", letterSpacing: "0.1em" }}>AFTER</div>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: ACCENT, lineHeight: 1.6 }}>{sliderData.forgedSpeed}<br />{sliderData.forgedConv} conv</div>
-                  </>
-                )}
-              </div>
-            </div>
-            {editMode && (
-              <div style={{ position: "absolute", top: 10, left: 10, right: 10, zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ fontFamily: "monospace", fontSize: 8, color: `rgba(0,229,255,0.6)`, marginBottom: 3, letterSpacing: "0.1em" }}>AFTER SCREENSHOT URL</div>
-                <input value={sliderData.forgedImg} onChange={(e) => updateSlider("forgedImg", e.target.value)} placeholder="https://i.imgur.com/... or any image URL" style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: `1px solid rgba(0,229,255,0.45)`, borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }} />
-              </div>
-            )}
-          </div>
-
-          {/* Drag handle */}
-          <div style={{ position: "absolute", top: 0, bottom: 0, left: `${sliderPos}%`, width: 2, background: ACCENT, marginLeft: -1, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 10 }}>
-            <div style={{ background: "#0A0A0A", border: `1px solid ${ACCENT}`, color: ACCENT, padding: isMobile ? "3px 8px" : "4px 12px", borderRadius: 20, fontSize: isMobile ? 8 : 11, fontFamily: "monospace", boxShadow: "0 0 10px rgba(0,229,255,0.5)", whiteSpace: "nowrap" }}>
-              ◄ SLIDE ►
-            </div>
-          </div>
-        </div>
 
         {/* ── Project Windows ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, marginBottom: 32 }}>
