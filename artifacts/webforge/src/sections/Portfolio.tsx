@@ -15,13 +15,13 @@ export type Project = {
   newConv: string;
   tags: string[];
   videoUrl: string;
-  // Detail modal fields
   date?: string;
   priceRange?: string;
   duration?: string;
   images?: string[];
 };
 
+// ─── Default data ─────────────────────────────────────────────────────────────
 const DEFAULT_PROJECTS: Project[] = [
   {
     id: "1", client: "Apex Roofing Co.", url: "apexroofing.com", industry: "Home Services",
@@ -46,28 +46,22 @@ const DEFAULT_PROJECTS: Project[] = [
   },
 ];
 
-const ARCHIVE_PROJECTS = [
-  { name: "Vanguard Logistics",    prevSpeed: "6.0s", newSpeed: "0.8s", prevConv: "1.1%", newConv: "5.5%" },
-  { name: "Summit Dental Group",   prevSpeed: "4.4s", newSpeed: "0.7s", prevConv: "1.5%", newConv: "6.0%" },
-  { name: "Ember & Oak Interiors", prevSpeed: "5.7s", newSpeed: "0.9s", prevConv: "1.0%", newConv: "4.2%" },
-  { name: "TerraForm Landscaping", prevSpeed: "3.8s", newSpeed: "0.6s", prevConv: "2.0%", newConv: "5.9%" },
+const DEFAULT_ARCHIVE_PROJECTS: Project[] = [
+  {
+    id: "arch-1", client: "New Archive Project", url: "client.com", industry: "Industry",
+    description: "Describe the project here — what was built, the challenge solved, and the outcome delivered.",
+    prevSpeed: "0.0s", newSpeed: "0.0s", prevConv: "0.0%", newConv: "0.0%",
+    tags: ["Tag"], videoUrl: "",
+    date: "", priceRange: "", duration: "", images: [],
+  },
 ];
 
-const STORAGE_KEY = "webforge_projects_v3";
-const SLIDER_KEY  = "webforge_slider";
+// ─── Storage ──────────────────────────────────────────────────────────────────
+const STORAGE_KEY         = "webforge_projects_v3";
+const ARCHIVE_STORAGE_KEY = "webforge_archive_v1";
+const SLIDER_KEY          = "webforge_slider";
 const ACCENT = "#00E5FF";
 
-function getYoutubeId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
-}
-
-type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string; legacyImg: string; forgedImg: string };
-const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%", legacyImg: "", forgedImg: "" };
-function loadSliderData(): SliderData { try { const r = localStorage.getItem(SLIDER_KEY); if (r) return JSON.parse(r); } catch {} return DEFAULT_SLIDER; }
-function saveSliderData(d: SliderData) { try { localStorage.setItem(SLIDER_KEY, JSON.stringify(d)); } catch {} }
-
-// ─── Persistence ──────────────────────────────────────────────────────────────
 function loadProjects(): Project[] {
   try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch {}
   return DEFAULT_PROJECTS;
@@ -75,136 +69,264 @@ function loadProjects(): Project[] {
 function saveProjects(p: Project[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
 }
+function loadArchiveProjects(): Project[] {
+  try { const r = localStorage.getItem(ARCHIVE_STORAGE_KEY); if (r) return JSON.parse(r); } catch {}
+  return DEFAULT_ARCHIVE_PROJECTS;
+}
+function saveArchiveProjects(p: Project[]) {
+  try { localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(p)); } catch {}
+}
 
-// ─── YouTube helper ───────────────────────────────────────────────────────────
+// ─── YouTube helpers ──────────────────────────────────────────────────────────
+function getYoutubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
 function getYoutubeEmbed(url: string): string | null {
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0` : null;
 }
 
+// ─── Cut-corner clip path ─────────────────────────────────────────────────────
+const CUT = 14; // px corner cut size
+const cutCorners = `polygon(0 ${CUT}px, ${CUT}px 0, calc(100% - ${CUT}px) 0, 100% ${CUT}px, 100% calc(100% - ${CUT}px), calc(100% - ${CUT}px) 100%, ${CUT}px 100%, 0 calc(100% - ${CUT}px))`;
+const cutCornersInner = `polygon(0 ${CUT - 1}px, ${CUT - 1}px 0, calc(100% - ${CUT - 1}px) 0, 100% ${CUT - 1}px, 100% calc(100% - ${CUT - 1}px), calc(100% - ${CUT - 1}px) 100%, ${CUT - 1}px 100%, 0 calc(100% - ${CUT - 1}px))`;
+
+// ─── Slider data ──────────────────────────────────────────────────────────────
+type SliderData = { legacySpeed: string; legacyConv: string; forgedSpeed: string; forgedConv: string; legacyImg: string; forgedImg: string };
+const DEFAULT_SLIDER: SliderData = { legacySpeed: "4.8s", legacyConv: "1.2%", forgedSpeed: "0.8s", forgedConv: "6.4%", legacyImg: "", forgedImg: "" };
+function loadSliderData(): SliderData { try { const r = localStorage.getItem(SLIDER_KEY); if (r) return JSON.parse(r); } catch {} return DEFAULT_SLIDER; }
+function saveSliderData(d: SliderData) { try { localStorage.setItem(SLIDER_KEY, JSON.stringify(d)); } catch {} }
+
 // ─── Project Detail Modal ─────────────────────────────────────────────────────
 function ProjectDetailModal({
-  projects, index, onClose, onNav,
+  projects, index, isAdmin, onClose, onNav, onUpdate,
 }: {
-  projects: Project[]; index: number; onClose: () => void; onNav: (i: number) => void;
+  projects: Project[];
+  index: number;
+  isAdmin: boolean;
+  onClose: () => void;
+  onNav: (i: number) => void;
+  onUpdate: (p: Project) => void;
 }) {
-  const project = projects[index];
+  const [modalEdit, setModalEdit] = useState(false);
+  const [draft, setDraft] = useState<Project>(projects[index]);
+
+  // Sync draft when navigating
+  useEffect(() => {
+    setDraft(projects[index]);
+    setModalEdit(false);
+  }, [index, projects]);
+
+  const project = modalEdit ? draft : projects[index];
   const embedUrl = project.videoUrl ? getYoutubeEmbed(project.videoUrl) : null;
   const images = project.images ?? [];
   const total = projects.length;
+
+  function field<K extends keyof Project>(key: K, val: Project[K]) {
+    setDraft((d) => ({ ...d, [key]: val }));
+  }
+
+  function save() {
+    onUpdate(draft);
+    setModalEdit(false);
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.25)",
+    padding: "6px 10px", color: "#fff", fontFamily: "monospace", fontSize: 12,
+    outline: "none", boxSizing: "border-box",
+  };
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "monospace", fontSize: 9, letterSpacing: "0.16em",
+    color: "rgba(0,229,255,0.55)", textTransform: "uppercase", marginBottom: 5, display: "block",
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.82)", backdropFilter: "blur(12px)", padding: "16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.88)", backdropFilter: "blur(12px)", padding: "16px" }}
       onClick={onClose}
     >
+      {/* Border wrapper — cut corners */}
       <motion.div
         initial={{ scale: 0.95, y: 18 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 18 }}
         transition={{ duration: 0.22 }}
-        style={{ width: "min(620px, 100%)", maxHeight: "90vh", background: "#fff", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 80px rgba(0,0,0,0.55)" }}
+        style={{ width: "min(640px, 100%)", maxHeight: "90vh", clipPath: cutCorners, background: "rgba(0,229,255,0.28)", padding: "1px", display: "flex", flexDirection: "column", boxShadow: "0 0 60px rgba(0,229,255,0.12)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ── */}
-        <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid rgba(0,0,0,0.08)", flexShrink: 0 }}>
-          {/* Avatar */}
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ color: ACCENT, fontWeight: 900, fontSize: 14, fontFamily: "monospace" }}>{project.client[0]}</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              Made by <span style={{ color: "#111" }}>NovaSites</span>
-            </div>
-          </div>
-          {/* Nav arrows */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={() => onNav((index - 1 + total) % total)}
-              style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#555" }}
-            >←</button>
-            <span style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{index + 1} of {total}</span>
-            <button
-              onClick={() => onNav((index + 1) % total)}
-              style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#555" }}
-            >→</button>
-          </div>
-          {/* Close */}
-          <button
-            onClick={onClose}
-            style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.07)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#555", flexShrink: 0 }}
-          >✕</button>
-        </div>
+        {/* Inner container */}
+        <div style={{ clipPath: cutCornersInner, background: "#090909", display: "flex", flexDirection: "column", flex: 1, maxHeight: "calc(90vh - 2px)", overflow: "hidden" }}>
 
-        {/* ── Scrollable body ── */}
-        <div style={{ overflowY: "auto", flex: 1 }}>
-          {/* Info section */}
-          <div style={{ padding: "24px 24px 20px" }}>
-            {project.date && (
-              <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>From: {project.date}</div>
+          {/* ── Header ── */}
+          <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid rgba(0,229,255,0.1)", flexShrink: 0, background: "#0d0d0d" }}>
+            {/* Avatar */}
+            <div style={{ width: 34, height: 34, background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ color: ACCENT, fontWeight: 900, fontSize: 13, fontFamily: "monospace" }}>{projects[index].client[0]}</span>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "0.08em", color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                // MADE BY <span style={{ color: ACCENT }}>NOVASITES</span>
+              </div>
+            </div>
+
+            {/* Admin manage button */}
+            {isAdmin && (
+              <button
+                onClick={() => { if (modalEdit) { save(); } else { setModalEdit(true); } }}
+                style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.13em", padding: "5px 11px", border: `1px solid ${modalEdit ? ACCENT : "rgba(0,229,255,0.3)"}`, color: modalEdit ? "#0a0a0a" : ACCENT, background: modalEdit ? ACCENT : "transparent", cursor: "pointer", flexShrink: 0, transition: "all 0.18s" }}
+              >
+                {modalEdit ? "SAVE" : "MANAGE"}
+              </button>
             )}
-            <h2 style={{ fontSize: 26, fontWeight: 800, color: "#0a0a0a", margin: "0 0 14px", lineHeight: 1.2 }}>{project.client}</h2>
-            <p style={{ fontSize: 14, lineHeight: 1.75, color: "#444", margin: "0 0 22px" }}>{project.description}</p>
+            {modalEdit && (
+              <button
+                onClick={() => { setDraft(projects[index]); setModalEdit(false); }}
+                style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.13em", padding: "5px 11px", border: "1px solid rgba(255,51,51,0.4)", color: "#FF3333", background: "transparent", cursor: "pointer", flexShrink: 0 }}
+              >
+                CANCEL
+              </button>
+            )}
 
-            {/* Metadata row */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 8 }}>
-              <div>
-                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Price range</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.priceRange ?? "—"}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Project duration</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.duration ?? "—"}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Industries</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.industry}</div>
-              </div>
+            {/* Nav arrows */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <button onClick={() => onNav((index - 1 + total) % total)} style={{ width: 26, height: 26, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "rgba(255,255,255,0.5)" }}>←</button>
+              <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{index + 1}/{total}</span>
+              <button onClick={() => onNav((index + 1) % total)} style={{ width: 26, height: 26, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "rgba(255,255,255,0.5)" }}>→</button>
             </div>
+
+            {/* Close */}
+            <button onClick={onClose} style={{ width: 26, height: 26, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>✕</button>
           </div>
 
-          {/* Media: video + images */}
-          {(project.videoUrl || images.length > 0) && (
-            <div style={{ padding: "0 24px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
-              {/* Video */}
-              {project.videoUrl && (
-                <div style={{ position: "relative", paddingTop: "56.25%", background: "#000", borderRadius: 8, overflow: "hidden" }}>
-                  {embedUrl ? (
-                    <iframe
-                      src={embedUrl}
-                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                      allow="autoplay; fullscreen"
-                    />
-                  ) : (
-                    <video
-                      src={project.videoUrl}
-                      controls autoPlay
-                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#000" }}
-                    />
-                  )}
+          {/* ── Scrollable body ── */}
+          <div style={{ overflowY: "auto", flex: 1 }}>
+
+            {/* Info */}
+            <div style={{ padding: "24px 24px 20px" }}>
+              {modalEdit ? (
+                <div style={{ marginBottom: 10 }}>
+                  <span style={labelStyle}>Date</span>
+                  <input value={draft.date ?? ""} onChange={(e) => field("date", e.target.value)} style={inputStyle} placeholder="e.g. June 2026" />
+                </div>
+              ) : (
+                project.date && <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: 10 }}>FROM: {project.date}</div>
+              )}
+
+              {modalEdit ? (
+                <div style={{ marginBottom: 14 }}>
+                  <span style={labelStyle}>Client name</span>
+                  <input value={draft.client} onChange={(e) => field("client", e.target.value)} style={{ ...inputStyle, fontSize: 20, fontWeight: 800, color: "#fff" }} />
+                </div>
+              ) : (
+                <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: "0 0 14px", lineHeight: 1.2 }}>{project.client}</h2>
+              )}
+
+              {modalEdit ? (
+                <div style={{ marginBottom: 20 }}>
+                  <span style={labelStyle}>Description</span>
+                  <textarea value={draft.description} onChange={(e) => field("description", e.target.value)} rows={4} style={{ ...inputStyle, resize: "none", lineHeight: 1.7 }} />
+                </div>
+              ) : (
+                <p style={{ fontSize: 14, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 22px" }}>{project.description}</p>
+              )}
+
+              {/* Metadata row */}
+              {modalEdit ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 8 }}>
+                  {([ ["Price range", "priceRange", "$100–$500"], ["Duration", "duration", "1–7 days"], ["Industry", "industry", "Industry"] ] as const).map(([label, key, ph]) => (
+                    <div key={key}>
+                      <span style={labelStyle}>{label}</span>
+                      <input value={(draft[key] as string) ?? ""} onChange={(e) => field(key as keyof Project, e.target.value as never)} placeholder={ph} style={inputStyle} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 8, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 18 }}>
+                  <div>
+                    <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>PRICE RANGE</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{project.priceRange || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>DURATION</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{project.duration || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>INDUSTRY</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{project.industry}</div>
+                  </div>
                 </div>
               )}
-              {/* Images */}
-              {images.map((src, i) => (
-                <img key={i} src={src} alt={`${project.client} screenshot ${i + 1}`} style={{ width: "100%", borderRadius: 8, display: "block", objectFit: "cover" }} />
-              ))}
             </div>
-          )}
 
-          {/* Project categories */}
-          {project.tags.length > 0 && (
-            <div style={{ padding: "4px 24px 28px" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#0a0a0a", marginBottom: 12 }}>Project category</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {project.tags.map((tag) => (
-                  <span key={tag} style={{ padding: "6px 14px", borderRadius: 20, border: "1px solid #ddd", fontSize: 13, color: "#333", background: "#fafafa" }}>{tag}</span>
-                ))}
-              </div>
+            {/* Media */}
+            <div style={{ padding: "0 24px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+              {modalEdit ? (
+                <>
+                  <div>
+                    <span style={labelStyle}>Video URL (YouTube or direct)</span>
+                    <input value={draft.videoUrl} onChange={(e) => field("videoUrl", e.target.value)} placeholder="https://youtube.com/watch?v=..." style={inputStyle} />
+                  </div>
+                  <div>
+                    <span style={labelStyle}>Image URLs (one per line)</span>
+                    <textarea
+                      value={(draft.images ?? []).join("\n")}
+                      onChange={(e) => field("images", e.target.value.split("\n").map(s => s.trim()).filter(Boolean))}
+                      rows={4} placeholder={"https://i.imgur.com/abc.jpg\nhttps://..."}
+                      style={{ ...inputStyle, resize: "none", lineHeight: 1.6 }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {project.videoUrl && (
+                    <div style={{ position: "relative", paddingTop: "56.25%", background: "#000", overflow: "hidden" }}>
+                      {embedUrl ? (
+                        <iframe src={embedUrl} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }} allow="autoplay; fullscreen" />
+                      ) : (
+                        <video src={project.videoUrl} controls autoPlay style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#000" }} />
+                      )}
+                    </div>
+                  )}
+                  {images.map((src, i) => (
+                    <img key={i} src={src} alt={`${project.client} screenshot ${i + 1}`} style={{ width: "100%", display: "block", objectFit: "cover" }} />
+                  ))}
+                  {!project.videoUrl && images.length === 0 && (
+                    <div style={{ border: "1px dashed rgba(0,229,255,0.15)", padding: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "rgba(255,255,255,0.2)" }}>NO MEDIA — ADMIN CAN ADD VIA MANAGE</span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          )}
+
+            {/* Tags */}
+            <div style={{ padding: "0 24px 28px" }}>
+              <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.16em", color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>// PROJECT CATEGORY</div>
+              {modalEdit ? (
+                <>
+                  <span style={labelStyle}>Tags (comma separated)</span>
+                  <input
+                    value={draft.tags.join(", ")}
+                    onChange={(e) => field("tags", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
+                    placeholder="Tag 1, Tag 2, Tag 3"
+                    style={inputStyle}
+                  />
+                </>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                  {project.tags.map((tag) => (
+                    <span key={tag} style={{ padding: "5px 13px", border: "1px solid rgba(0,229,255,0.22)", fontSize: 12, color: "rgba(0,229,255,0.75)", background: "rgba(0,229,255,0.04)", fontFamily: "monospace", letterSpacing: "0.05em" }}>{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -234,21 +356,19 @@ function ArchiveButton({ expanded, onClick }: { expanded: boolean; onClick: () =
   );
 }
 
-// ─── Admin password modal (SHA-256 + rate limiting) ──────────────────────────
+// ─── Admin password modal ─────────────────────────────────────────────────────
 function AdminModal({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
   const [pw, setPw] = useState("");
   const [phase, setPhase] = useState<"idle" | "loading" | "wrong" | "locked">("idle");
   const [remainingMs, setRemainingMs] = useState(0);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
 
-  // Check lockout on mount
   useEffect(() => {
     const { locked, remainingMs: ms, attempts } = getRateLimit();
     if (locked) { setPhase("locked"); setRemainingMs(ms); }
     else { setAttemptsLeft(Math.max(0, 3 - attempts)); }
   }, []);
 
-  // Countdown while locked
   useEffect(() => {
     if (phase !== "locked") return;
     const t = setInterval(() => {
@@ -355,7 +475,7 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
         cursor: editMode ? "default" : "pointer",
       }}
     >
-      {/* Window chrome — full width */}
+      {/* Window chrome */}
       <div style={{ background: "#111", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "9px 14px", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F57", display: "inline-block", flexShrink: 0 }} />
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFBD2E", display: "inline-block", flexShrink: 0 }} />
@@ -370,14 +490,11 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
         )}
       </div>
 
-      {/* Body — horizontal split */}
+      {/* Body */}
       <div style={{ display: "flex", flex: 1, minHeight: 300 }}>
 
-        {/* ── LEFT: video (50%) ── */}
-        <div
-          style={{ position: "relative", width: "50%", flexShrink: 0, background: "#050505", overflow: "hidden", borderRight: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          {/* Muted autoplay — each card plays its own video */}
+        {/* LEFT: video */}
+        <div style={{ position: "relative", width: "50%", flexShrink: 0, background: "#050505", overflow: "hidden", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
           {inView && videoId && (
             <iframe
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&rel=0&modestbranding=1&playsinline=1`}
@@ -386,11 +503,9 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
               title={`${project.client} reel`}
             />
           )}
-          {/* Fallback grid pattern when no video / not in view */}
           {(!inView || !videoId) && (
             <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
           )}
-          {/* Video URL input — edit mode */}
           {editMode && (
             <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
               <input
@@ -403,10 +518,9 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
           )}
         </div>
 
-        {/* ── RIGHT: details (50%) ── */}
+        {/* RIGHT: details */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-          {/* Client + industry */}
           <div style={{ padding: "20px 22px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>
               {editMode
@@ -418,7 +532,6 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
                 ? <input value={project.client} placeholder="Client Name" onChange={(e) => onChange({ ...project, client: e.target.value })} style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.22)", borderRadius: 3, padding: "2px 8px", color: "#fff", fontWeight: 800, fontSize: 18, width: "100%", outline: "none" }} />
                 : project.client}
             </div>
-            {/* Metrics */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {([["PAGE SPEED", "prevSpeed", "newSpeed"], ["CONVERSION", "prevConv", "newConv"]] as const).map(([label, pk, nk]) => (
                 <div key={label}>
@@ -440,7 +553,6 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
             </div>
           </div>
 
-          {/* Description + tags */}
           <div style={{ padding: "16px 22px 20px", flex: 1 }}>
             {editMode
               ? <textarea value={project.description} placeholder="Project description..." rows={4} onChange={(e) => onChange({ ...project, description: e.target.value })} style={{ width: "100%", background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 4, padding: "8px 10px", color: "rgba(255,255,255,0.58)", fontSize: 12, lineHeight: 1.7, resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
@@ -462,16 +574,22 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
 
 // ─── Main Portfolio section ───────────────────────────────────────────────────
 export function Portfolio() {
-  const [sliderPos, setSliderPos]     = useState(50);
-  const sliderRef                     = useRef<HTMLDivElement>(null);
-  const sectionRef                    = useRef<HTMLElement>(null);
-  const [isExpanded, setIsExpanded]   = useState(false);
-  const [projects, setProjects]       = useState<Project[]>(loadProjects);
-  const [editMode, setEditMode]           = useState(false);
-  const [activeIndex, setActiveIndex]     = useState<number | null>(null);
-  const [sliderData, setSliderData]   = useState<SliderData>(loadSliderData);
-  const [isMobile, setIsMobile]       = useState(false);
-  const [inView, setInView]           = useState(false);
+  const [sliderPos, setSliderPos]   = useState(50);
+  const sliderRef                   = useRef<HTMLDivElement>(null);
+  const sectionRef                  = useRef<HTMLElement>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [projects, setProjects]     = useState<Project[]>(loadProjects);
+  const [archiveProjects, setArchiveProjects] = useState<Project[]>(loadArchiveProjects);
+  const [editMode, setEditMode]     = useState(false);
+  const [sliderData, setSliderData] = useState<SliderData>(loadSliderData);
+  const [isMobile, setIsMobile]     = useState(false);
+  const [inView, setInView]         = useState(false);
+
+  // activePool: which array is the modal currently showing
+  const [activePool, setActivePool] = useState<"main" | "archive">("main");
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const activeProjects = activePool === "main" ? projects : archiveProjects;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -483,10 +601,7 @@ export function Portfolio() {
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      { threshold: 0.15 }
-    );
+    const obs = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.15 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -496,11 +611,11 @@ export function Portfolio() {
     setSliderData(next); saveSliderData(next);
   }
 
-  // Admin state
-  const [isAdmin, setIsAdmin]             = useState(checkAdmin);
+  // Admin
+  const [isAdmin, setIsAdmin]               = useState(checkAdmin);
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const clickCount                        = useRef(0);
-  const clickTimer                        = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickCount                          = useRef(0);
+  const clickTimer                          = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTitleClick = () => {
     clickCount.current += 1;
@@ -520,6 +635,7 @@ export function Portfolio() {
     }
   };
 
+  // Main project CRUD
   function updateProject(i: number, updated: Project) {
     const next = projects.map((p, idx) => (idx === i ? updated : p));
     setProjects(next); saveProjects(next);
@@ -529,11 +645,29 @@ export function Portfolio() {
     setProjects(next); saveProjects(next);
   }
   function addProject() {
-    const next: Project = { id: Date.now().toString(), client: "New Client", url: "newclient.com", industry: "Industry", description: "Project description.", prevSpeed: "0.0s", newSpeed: "0.0s", prevConv: "0.0%", newConv: "0.0%", tags: ["Tag"], videoUrl: "" };
+    const next: Project = { id: Date.now().toString(), client: "New Client", url: "newclient.com", industry: "Industry", description: "Project description.", prevSpeed: "0.0s", newSpeed: "0.0s", prevConv: "0.0%", newConv: "0.0%", tags: ["Tag"], videoUrl: "", date: "", priceRange: "", duration: "", images: [] };
     const updated = [...projects, next]; setProjects(updated); saveProjects(updated);
   }
-  function resetProjects() {
-    setProjects(DEFAULT_PROJECTS); saveProjects(DEFAULT_PROJECTS);
+  function resetProjects() { setProjects(DEFAULT_PROJECTS); saveProjects(DEFAULT_PROJECTS); }
+
+  // Archive CRUD
+  function updateArchiveProject(i: number, updated: Project) {
+    const next = archiveProjects.map((p, idx) => (idx === i ? updated : p));
+    setArchiveProjects(next); saveArchiveProjects(next);
+  }
+  function deleteArchiveProject(i: number) {
+    const next = archiveProjects.filter((_, idx) => idx !== i);
+    setArchiveProjects(next); saveArchiveProjects(next);
+  }
+  function addArchiveProject() {
+    const next: Project = { id: `arch-${Date.now()}`, client: "New Archive Project", url: "client.com", industry: "Industry", description: "Project description.", prevSpeed: "0.0s", newSpeed: "0.0s", prevConv: "0.0%", newConv: "0.0%", tags: ["Tag"], videoUrl: "", date: "", priceRange: "", duration: "", images: [] };
+    const updated = [...archiveProjects, next]; setArchiveProjects(updated); saveArchiveProjects(updated);
+  }
+
+  // Modal update router
+  function handleModalUpdate(updated: Project) {
+    if (activePool === "main" && activeIndex !== null) updateProject(activeIndex, updated);
+    else if (activePool === "archive" && activeIndex !== null) updateArchiveProject(activeIndex, updated);
   }
 
   return (
@@ -551,7 +685,6 @@ export function Portfolio() {
             </p>
           </div>
 
-          {/* Admin controls — only visible when authenticated */}
           {isAdmin && (
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
               {editMode && (
@@ -569,11 +702,11 @@ export function Portfolio() {
 
         {editMode && isAdmin && (
           <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} style={{ fontFamily: "monospace", fontSize: 10.5, color: ACCENT, background: "rgba(0,229,255,0.04)", border: "1px solid rgba(0,229,255,0.18)", borderRadius: 4, padding: "9px 16px", marginBottom: 22 }}>
-            // EDIT MODE — fields are editable, changes persist in your browser. Click video area to add URLs.
+            // EDIT MODE — fields are editable, changes persist in your browser.
           </motion.div>
         )}
 
-        {/* ── SLIDER — Before/After Comparison ── */}
+        {/* ── SLIDER ── */}
         <div
           ref={sliderRef}
           style={{ height: isMobile ? 200 : 360 }}
@@ -582,14 +715,13 @@ export function Portfolio() {
           onTouchMove={(e) => handleSlider(e.touches[0].clientX)}
           onMouseDown={(e) => handleSlider(e.clientX)}
         >
-          {/* LEGACY (right / background) */}
+          {/* LEGACY */}
           <div style={{ position: "absolute", inset: 0, background: "#221111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {sliderData.legacyImg ? (
               <img src={sliderData.legacyImg} alt="Before" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: 0.85 }} />
             ) : (
               <div style={{ fontSize: isMobile ? "4rem" : "10rem", opacity: 0.2, color: "#FF3333", fontWeight: 900, filter: "blur(2px)", userSelect: "none", transform: "rotate(-12deg)" }}>LEGACY</div>
             )}
-            {/* Stats + edit overlay — LEGACY */}
             <div style={{ position: "absolute", bottom: isMobile ? 8 : 20, left: isMobile ? 8 : 20 }} onClick={(e) => e.stopPropagation()}>
               <div style={{ background: "rgba(0,0,0,0.72)", borderRadius: 5, padding: isMobile ? "6px 8px" : "10px 14px", display: "flex", flexDirection: "column", gap: 5, backdropFilter: "blur(4px)", border: "1px solid rgba(255,51,51,0.3)" }}>
                 {editMode ? (
@@ -597,40 +729,30 @@ export function Portfolio() {
                     <div style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,51,51,0.7)", letterSpacing: "0.12em", marginBottom: 2 }}>BEFORE (OLD SITE)</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>SPEED</span>
-                      <input value={sliderData.legacySpeed} onChange={(e) => updateSlider("legacySpeed", e.target.value)}
-                        style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
+                      <input value={sliderData.legacySpeed} onChange={(e) => updateSlider("legacySpeed", e.target.value)} style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>CONV</span>
-                      <input value={sliderData.legacyConv} onChange={(e) => updateSlider("legacyConv", e.target.value)}
-                        style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
+                      <input value={sliderData.legacyConv} onChange={(e) => updateSlider("legacyConv", e.target.value)} style={{ width: 46, background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", borderRadius: 3, padding: "2px 5px", color: "#FF3333", fontFamily: "monospace", fontSize: 11, outline: "none" }} />
                     </div>
                   </>
                 ) : (
                   <>
                     <div style={{ fontFamily: "monospace", fontSize: isMobile ? 8 : 10, color: "rgba(255,51,51,0.65)", letterSpacing: "0.1em" }}>BEFORE</div>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: "#FF3333", lineHeight: 1.6 }}>
-                      {sliderData.legacySpeed}<br />{sliderData.legacyConv} conv
-                    </div>
+                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: "#FF3333", lineHeight: 1.6 }}>{sliderData.legacySpeed}<br />{sliderData.legacyConv} conv</div>
                   </>
                 )}
               </div>
             </div>
-            {/* Screenshot URL input — edit mode only */}
             {editMode && (
               <div style={{ position: "absolute", top: 10, left: 10, right: "55%", zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ fontFamily: "monospace", fontSize: 8, color: "rgba(255,51,51,0.6)", marginBottom: 3, letterSpacing: "0.1em" }}>BEFORE SCREENSHOT URL</div>
-                <input
-                  value={sliderData.legacyImg}
-                  onChange={(e) => updateSlider("legacyImg", e.target.value)}
-                  placeholder="https://i.imgur.com/... or any image URL"
-                  style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,51,51,0.45)", borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }}
-                />
+                <input value={sliderData.legacyImg} onChange={(e) => updateSlider("legacyImg", e.target.value)} placeholder="https://i.imgur.com/... or any image URL" style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: "1px solid rgba(255,51,51,0.45)", borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }} />
               </div>
             )}
           </div>
 
-          {/* FORGED (left / clipped) */}
+          {/* FORGED */}
           <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${sliderPos}%`, background: "#0A1A1A", overflow: "hidden", borderRight: `2px solid ${ACCENT}`, boxShadow: "2px 0 15px rgba(0,229,255,0.3)" }}>
             <div style={{ position: "absolute", inset: 0, width: "100vw", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {sliderData.forgedImg ? (
@@ -639,7 +761,6 @@ export function Portfolio() {
                 <div style={{ fontSize: isMobile ? "4rem" : "10rem", opacity: 0.2, color: ACCENT, fontWeight: 900, filter: "blur(1px)", userSelect: "none", transform: "rotate(12deg)" }}>FORGED</div>
               )}
             </div>
-            {/* Stats — FORGED */}
             <div style={{ position: "absolute", bottom: isMobile ? 8 : 20, left: isMobile ? 8 : 20, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
               <div style={{ background: "rgba(0,0,0,0.72)", borderRadius: 5, padding: isMobile ? "6px 8px" : "10px 14px", display: "flex", flexDirection: "column", gap: 5, backdropFilter: "blur(4px)", border: `1px solid rgba(0,229,255,0.3)` }}>
                 {editMode ? (
@@ -647,35 +768,25 @@ export function Portfolio() {
                     <div style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(0,229,255,0.7)", letterSpacing: "0.12em", marginBottom: 2 }}>AFTER (NOVASITES)</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>SPEED</span>
-                      <input value={sliderData.forgedSpeed} onChange={(e) => updateSlider("forgedSpeed", e.target.value)}
-                        style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
+                      <input value={sliderData.forgedSpeed} onChange={(e) => updateSlider("forgedSpeed", e.target.value)} style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", width: 36 }}>CONV</span>
-                      <input value={sliderData.forgedConv} onChange={(e) => updateSlider("forgedConv", e.target.value)}
-                        style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
+                      <input value={sliderData.forgedConv} onChange={(e) => updateSlider("forgedConv", e.target.value)} style={{ width: 46, background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.4)", borderRadius: 3, padding: "2px 5px", color: ACCENT, fontFamily: "monospace", fontSize: 11, outline: "none" }} />
                     </div>
                   </>
                 ) : (
                   <>
                     <div style={{ fontFamily: "monospace", fontSize: isMobile ? 8 : 10, color: "rgba(0,229,255,0.65)", letterSpacing: "0.1em" }}>AFTER</div>
-                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: ACCENT, lineHeight: 1.6 }}>
-                      {sliderData.forgedSpeed}<br />{sliderData.forgedConv} conv
-                    </div>
+                    <div style={{ fontFamily: "monospace", fontSize: isMobile ? 10 : 13, color: ACCENT, lineHeight: 1.6 }}>{sliderData.forgedSpeed}<br />{sliderData.forgedConv} conv</div>
                   </>
                 )}
               </div>
             </div>
-            {/* Screenshot URL input — edit mode only */}
             {editMode && (
               <div style={{ position: "absolute", top: 10, left: 10, right: 10, zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ fontFamily: "monospace", fontSize: 8, color: `rgba(0,229,255,0.6)`, marginBottom: 3, letterSpacing: "0.1em" }}>AFTER SCREENSHOT URL</div>
-                <input
-                  value={sliderData.forgedImg}
-                  onChange={(e) => updateSlider("forgedImg", e.target.value)}
-                  placeholder="https://i.imgur.com/... or any image URL"
-                  style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: `1px solid rgba(0,229,255,0.45)`, borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }}
-                />
+                <input value={sliderData.forgedImg} onChange={(e) => updateSlider("forgedImg", e.target.value)} placeholder="https://i.imgur.com/... or any image URL" style={{ width: "100%", background: "rgba(0,0,0,0.8)", border: `1px solid rgba(0,229,255,0.45)`, borderRadius: 4, padding: "5px 8px", color: "rgba(255,255,255,0.75)", fontFamily: "monospace", fontSize: 10, outline: "none", boxSizing: "border-box" }} />
               </div>
             )}
           </div>
@@ -696,7 +807,7 @@ export function Portfolio() {
               inView={inView}
               onChange={(u) => updateProject(i, u)}
               onDelete={() => deleteProject(i)}
-              onOpen={() => setActiveIndex(i)}
+              onOpen={() => { setActivePool("main"); setActiveIndex(i); }}
             />
           ))}
         </div>
@@ -706,27 +817,23 @@ export function Portfolio() {
         <AnimatePresence>
           {isExpanded && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-8">
-              <div className="grid gap-4 md:grid-cols-2">
-                {ARCHIVE_PROJECTS.map((item, i) => (
-                  <div key={i} className="bg-card border border-border p-6 rounded flex flex-col justify-between">
-                    <h4 className="text-white font-bold text-lg mb-4">{item.name}</h4>
-                    <div className="grid grid-cols-2 gap-4 font-mono text-xs">
-                      <div>
-                        <div className="text-muted-foreground mb-1">PAGE SPEED</div>
-                        <div className="flex items-end gap-2">
-                          <span className="text-muted-foreground line-through">{item.prevSpeed}</span>
-                          <span className="text-primary text-lg leading-none">► {item.newSpeed}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-muted-foreground mb-1">CONVERSION RATE</div>
-                        <div className="flex items-end gap-2">
-                          <span className="text-muted-foreground line-through">{item.prevConv}</span>
-                          <span className="text-primary text-lg leading-none">► {item.newConv}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
+              {/* Archive admin controls */}
+              {isAdmin && editMode && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                  <button onClick={addArchiveProject} style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.13em", padding: "7px 14px", border: "1px solid rgba(0,229,255,0.4)", color: ACCENT, background: "rgba(0,229,255,0.06)", borderRadius: 4, cursor: "pointer" }}>+ ADD TO ARCHIVE</button>
+                </motion.div>
+              )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24 }}>
+                {archiveProjects.map((project, i) => (
+                  <ProjectWindow
+                    key={project.id} project={project} index={i} editMode={editMode && isAdmin}
+                    inView={inView}
+                    onChange={(u) => updateArchiveProject(i, u)}
+                    onDelete={() => deleteArchiveProject(i)}
+                    onOpen={() => { setActivePool("archive"); setActiveIndex(i); }}
+                  />
                 ))}
               </div>
             </motion.div>
@@ -739,10 +846,12 @@ export function Portfolio() {
       <AnimatePresence>
         {activeIndex !== null && (
           <ProjectDetailModal
-            projects={projects}
+            projects={activeProjects}
             index={activeIndex}
+            isAdmin={isAdmin}
             onClose={() => setActiveIndex(null)}
             onNav={(i) => setActiveIndex(i)}
+            onUpdate={handleModalUpdate}
           />
         )}
       </AnimatePresence>
