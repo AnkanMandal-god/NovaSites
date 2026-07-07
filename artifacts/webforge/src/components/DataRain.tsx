@@ -44,7 +44,11 @@ export function DataRain() {
 
       cols = Array.from({ length: numCols }, (_, i) => ({
         x:      i * COL_GAP + COL_GAP * 0.4,
-        y:      Math.random() * -H * 1.5,
+        // Seed columns throughout the canvas height so rain is mid-flow on load.
+        // A small portion start above the top for visual variety.
+        y:      Math.random() < 0.15
+                  ? Math.random() * -H * 0.5
+                  : Math.random() * H,
         speed:  0.6 + Math.random() * 1.1,
         trail:  Array.from({ length: TRAIL_LEN }, randChar),
         head:   0,
