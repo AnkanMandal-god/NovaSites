@@ -15,6 +15,11 @@ export type Project = {
   newConv: string;
   tags: string[];
   videoUrl: string;
+  // Detail modal fields
+  date?: string;
+  priceRange?: string;
+  duration?: string;
+  images?: string[];
 };
 
 const DEFAULT_PROJECTS: Project[] = [
@@ -23,18 +28,21 @@ const DEFAULT_PROJECTS: Project[] = [
     description: "Full rebuild from a sluggish WordPress template to a hand-coded asset. Eliminated 14 redundant plugins, restructured local SEO, and redesigned the quote form flow for maximum lead capture.",
     prevSpeed: "3.9s", newSpeed: "0.7s", prevConv: "1.8%", newConv: "5.2%",
     tags: ["Local SEO", "Lead Gen", "Hand-coded"], videoUrl: "https://www.youtube.com/watch?v=4DYu-T8koNQ",
+    date: "June 2026", priceRange: "$500–$1,200", duration: "5–10 days", images: [],
   },
   {
     id: "2", client: "Cascade HVAC", url: "cascadehvac.com", industry: "HVAC & Climate Control",
     description: "Stripped a 22-plugin WordPress site down to zero dependencies. Rebuilt with semantic HTML, deferred asset loading, and structured data markup. Now ranking page one for 8 target keywords.",
     prevSpeed: "5.2s", newSpeed: "0.6s", prevConv: "0.9%", newConv: "4.8%",
     tags: ["SEO Overhaul", "Plugin Elimination", "Structured Data"], videoUrl: "https://www.youtube.com/watch?v=egDYXqQ-YX0",
+    date: "May 2026", priceRange: "$800–$1,500", duration: "7–14 days", images: [],
   },
   {
     id: "3", client: "Sentinel Law Group", url: "sentinellaw.com", industry: "Legal Services",
     description: "Trust and authority architecture for a boutique law firm. High-contrast design with precise CTA placement, WCAG-compliant markup, and a conversion-optimised consultation booking flow.",
     prevSpeed: "4.1s", newSpeed: "0.9s", prevConv: "2.1%", newConv: "7.1%",
     tags: ["Conversion Design", "Accessibility", "Consultation Flow"], videoUrl: "https://www.youtube.com/watch?v=ezQBGeX8_kk",
+    date: "April 2026", priceRange: "$1,000–$2,000", duration: "10–21 days", images: [],
   },
 ];
 
@@ -45,7 +53,7 @@ const ARCHIVE_PROJECTS = [
   { name: "TerraForm Landscaping", prevSpeed: "3.8s", newSpeed: "0.6s", prevConv: "2.0%", newConv: "5.9%" },
 ];
 
-const STORAGE_KEY = "webforge_projects_v2";
+const STORAGE_KEY = "webforge_projects_v3";
 const SLIDER_KEY  = "webforge_slider";
 const ACCENT = "#00E5FF";
 
@@ -74,64 +82,129 @@ function getYoutubeEmbed(url: string): string | null {
   return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0` : null;
 }
 
-// ─── Video Mini-Player ────────────────────────────────────────────────────────
-function MiniPlayer({ project, onClose }: { project: Project; onClose: () => void }) {
+// ─── Project Detail Modal ─────────────────────────────────────────────────────
+function ProjectDetailModal({
+  projects, index, onClose, onNav,
+}: {
+  projects: Project[]; index: number; onClose: () => void; onNav: (i: number) => void;
+}) {
+  const project = projects[index];
   const embedUrl = project.videoUrl ? getYoutubeEmbed(project.videoUrl) : null;
+  const images = project.images ?? [];
+  const total = projects.length;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.88)", backdropFilter: "blur(10px)" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.82)", backdropFilter: "blur(12px)", padding: "16px" }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.94, y: 20 }}
+        initial={{ scale: 0.95, y: 18 }}
         animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.94, y: 20 }}
+        exit={{ scale: 0.95, y: 18 }}
         transition={{ duration: 0.22 }}
-        style={{ width: "min(700px, 95vw)", background: "#090909", border: `1px solid rgba(0,229,255,0.3)`, borderRadius: 10, overflow: "hidden" }}
+        style={{ width: "min(620px, 100%)", maxHeight: "90vh", background: "#fff", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 80px rgba(0,0,0,0.55)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Chrome */}
-        <div style={{ background: "#111", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F57", display: "inline-block" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFBD2E", display: "inline-block" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28CA41", display: "inline-block" }} />
-            <span style={{ fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.4)", marginLeft: 6 }}>{project.url}</span>
+        {/* ── Header ── */}
+        <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid rgba(0,0,0,0.08)", flexShrink: 0 }}>
+          {/* Avatar */}
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ color: ACCENT, fontWeight: 900, fontSize: 14, fontFamily: "monospace" }}>{project.client[0]}</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>✕</button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              Made by <span style={{ color: "#111" }}>NovaSites</span>
+            </div>
+          </div>
+          {/* Nav arrows */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <button
+              onClick={() => onNav((index - 1 + total) % total)}
+              style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#555" }}
+            >←</button>
+            <span style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{index + 1} of {total}</span>
+            <button
+              onClick={() => onNav((index + 1) % total)}
+              style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#555" }}
+            >→</button>
+          </div>
+          {/* Close */}
+          <button
+            onClick={onClose}
+            style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.07)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#555", flexShrink: 0 }}
+          >✕</button>
         </div>
 
-        {/* Video area */}
-        <div style={{ position: "relative", paddingTop: "56.25%", background: "#000" }}>
-          {project.videoUrl ? (
-            embedUrl ? (
-              <iframe
-                src={embedUrl}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                allow="autoplay; fullscreen"
-              />
-            ) : (
-              <video
-                src={project.videoUrl}
-                controls autoPlay
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#000" }}
-              />
-            )
-          ) : (
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
-              <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "0.2em", color: "rgba(255,255,255,0.3)" }}>NO VIDEO URL CONFIGURED</span>
-              <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.18)" }}>Add a YouTube or video URL in MANAGE PROJECTS</span>
+        {/* ── Scrollable body ── */}
+        <div style={{ overflowY: "auto", flex: 1 }}>
+          {/* Info section */}
+          <div style={{ padding: "24px 24px 20px" }}>
+            {project.date && (
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>From: {project.date}</div>
+            )}
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: "#0a0a0a", margin: "0 0 14px", lineHeight: 1.2 }}>{project.client}</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.75, color: "#444", margin: "0 0 22px" }}>{project.description}</p>
+
+            {/* Metadata row */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 8 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Price range</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.priceRange ?? "—"}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Project duration</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.duration ?? "—"}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 500 }}>Industries</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0a0a0a" }}>{project.industry}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Media: video + images */}
+          {(project.videoUrl || images.length > 0) && (
+            <div style={{ padding: "0 24px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Video */}
+              {project.videoUrl && (
+                <div style={{ position: "relative", paddingTop: "56.25%", background: "#000", borderRadius: 8, overflow: "hidden" }}>
+                  {embedUrl ? (
+                    <iframe
+                      src={embedUrl}
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                      allow="autoplay; fullscreen"
+                    />
+                  ) : (
+                    <video
+                      src={project.videoUrl}
+                      controls autoPlay
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", background: "#000" }}
+                    />
+                  )}
+                </div>
+              )}
+              {/* Images */}
+              {images.map((src, i) => (
+                <img key={i} src={src} alt={`${project.client} screenshot ${i + 1}`} style={{ width: "100%", borderRadius: 8, display: "block", objectFit: "cover" }} />
+              ))}
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div style={{ padding: "14px 18px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>{project.client}</div>
-          <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>{project.industry}</div>
+          {/* Project categories */}
+          {project.tags.length > 0 && (
+            <div style={{ padding: "4px 24px 28px" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#0a0a0a", marginBottom: 12 }}>Project category</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {project.tags.map((tag) => (
+                  <span key={tag} style={{ padding: "6px 14px", borderRadius: 20, border: "1px solid #ddd", fontSize: 13, color: "#333", background: "#fafafa" }}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -256,10 +329,10 @@ function AdminModal({ onSuccess, onClose }: { onSuccess: () => void; onClose: ()
 }
 
 // ─── Project window card ──────────────────────────────────────────────────────
-function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, onVideoClick }: {
+function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, onOpen }: {
   project: Project; index: number; editMode: boolean; inView: boolean;
   onChange: (p: Project) => void; onDelete: () => void;
-  onVideoClick: () => void;
+  onOpen: () => void;
 }) {
   const [hov, setHov] = useState(false);
   const videoId = getYoutubeId(project.videoUrl);
@@ -272,12 +345,14 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
       transition={{ duration: 0.45, delay: index * 0.08 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
+      onClick={!editMode ? onOpen : undefined}
       style={{
         border: `1px solid ${hov ? "rgba(0,229,255,0.25)" : "rgba(255,255,255,0.08)"}`,
         borderRadius: 8, overflow: "hidden",
         background: "rgba(12,12,12,0.98)",
         transition: "border-color 0.2s",
         display: "flex", flexDirection: "column",
+        cursor: editMode ? "default" : "pointer",
       }}
     >
       {/* Window chrome — full width */}
@@ -300,8 +375,7 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
 
         {/* ── LEFT: video (50%) ── */}
         <div
-          onClick={onVideoClick}
-          style={{ position: "relative", width: "50%", flexShrink: 0, background: "#050505", cursor: "pointer", overflow: "hidden", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ position: "relative", width: "50%", flexShrink: 0, background: "#050505", overflow: "hidden", borderRight: "1px solid rgba(255,255,255,0.06)" }}
         >
           {/* Muted autoplay — each card plays its own video */}
           {inView && videoId && (
@@ -316,19 +390,6 @@ function ProjectWindow({ project, index, editMode, inView, onChange, onDelete, o
           {(!inView || !videoId) && (
             <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
           )}
-          {/* Dark overlay */}
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.38)", pointerEvents: "none" }} />
-          {/* Play button */}
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, zIndex: 1 }}>
-            <div style={{ width: 46, height: 46, borderRadius: "50%", border: `1.5px solid ${ACCENT}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(0,229,255,0.3)", background: "rgba(0,0,0,0.4)" }}>
-              <svg width={15} height={15} viewBox="0 0 24 24" fill={ACCENT} style={{ marginLeft: 2 }}>
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            </div>
-            <span style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.18em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
-              CLICK TO PREVIEW
-            </span>
-          </div>
           {/* Video URL input — edit mode */}
           {editMode && (
             <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
@@ -406,8 +467,8 @@ export function Portfolio() {
   const sectionRef                    = useRef<HTMLElement>(null);
   const [isExpanded, setIsExpanded]   = useState(false);
   const [projects, setProjects]       = useState<Project[]>(loadProjects);
-  const [editMode, setEditMode]       = useState(false);
-  const [activeVideo, setActiveVideo] = useState<Project | null>(null);
+  const [editMode, setEditMode]           = useState(false);
+  const [activeIndex, setActiveIndex]     = useState<number | null>(null);
   const [sliderData, setSliderData]   = useState<SliderData>(loadSliderData);
   const [isMobile, setIsMobile]       = useState(false);
   const [inView, setInView]           = useState(false);
@@ -635,7 +696,7 @@ export function Portfolio() {
               inView={inView}
               onChange={(u) => updateProject(i, u)}
               onDelete={() => deleteProject(i)}
-              onVideoClick={() => setActiveVideo(project)}
+              onOpen={() => setActiveIndex(i)}
             />
           ))}
         </div>
@@ -674,9 +735,16 @@ export function Portfolio() {
 
       </div>
 
-      {/* Video mini-player overlay */}
+      {/* Project detail modal */}
       <AnimatePresence>
-        {activeVideo && <MiniPlayer project={activeVideo} onClose={() => setActiveVideo(null)} />}
+        {activeIndex !== null && (
+          <ProjectDetailModal
+            projects={projects}
+            index={activeIndex}
+            onClose={() => setActiveIndex(null)}
+            onNav={(i) => setActiveIndex(i)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Admin password modal */}
